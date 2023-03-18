@@ -24,39 +24,7 @@ tags:
       url: http://swagger.io
 
 paths:
-  /Park/findByTags:
-    get:
-      tags:
-        - Park
-      summary: Finds Parks by tags
-      description: Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.
-      operationId: findParksByTags
-      parameters:
-        - name: tags
-          in: query
-          description: Tags to filter by
-          required: false
-          explode: true
-          schema:
-            type: array
-            items:
-              type: string
-      responses:
-        "200":
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Park"
-        "400":
-          description: Invalid tag value
-      security:
-        - Parks_auth:
-            - write:Parks
-            - read:Parks
-  /Park/{ParkId}:
+  /v1/Park/{ParkId}:
     get:
       tags:
         - Park
@@ -82,13 +50,8 @@ paths:
           description: Invalid ID supplied
         "404":
           description: Park not found
-      security:
-        - api_key: []
-        - Parks_auth:
-            - write:Parks
-            - read:Parks
 
-  /Park/{ParkId}/uploadImage:
+  /v1/Park/{ParkId}/uploadImage:
     post:
       tags:
         - Park
@@ -123,14 +86,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiResponse"
       security:
-        - Parks_auth:
-            - write:Parks
-            - read:Parks
+        - jwt: []
 
-  /Parks:
+  /v1/Park/nearby:
     get:
       tags:
-        - Park
+        - Nearby Parks
       description: "Get All nearby parks"
       operationId: getNearbyParks
       parameters: []
@@ -283,15 +244,10 @@ components:
           schema:
             $ref: "#/components/schemas/Park"
   securitySchemes:
-    Parks_auth:
-      type: oauth2
-      flows:
-        implicit:
-          authorizationUrl: https://Parkstore3.swagger.io/oauth/authorize
-          scopes:
-            write:Parks: modify Parks in your account
-            read:Parks: read your Parks
-    api_key:
-      type: apiKey
-      name: api_key
-      in: header
+    basic:
+      type: http
+      scheme: basic
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
