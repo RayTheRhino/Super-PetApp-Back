@@ -17,11 +17,10 @@ externalDocs:
 servers:
   - url: https://Parkstore3.swagger.io/api/v3
 tags:
-  - name: park
-    description: Everything about local Park parks
-    externalDocs:
-      description: Find out more
-      url: http://swagger.io
+  - name: Park
+    description: Everything about local parks
+  - name: Review
+    description: Reviews
 
 paths:
   /v1/Park/{ParkId}:
@@ -91,7 +90,7 @@ paths:
   /v1/Park/nearby:
     get:
       tags:
-        - Nearby Parks
+        - Park
       description: "Get All nearby parks"
       operationId: getNearbyParks
       parameters: []
@@ -115,6 +114,7 @@ paths:
   /v1/Park/{ParkId}/review:
     get:
       tags:
+        - Park
         - Review
       description: "Get all reviews for the given park"
       operationId: getParkReviews
@@ -139,6 +139,7 @@ paths:
           description: Park Not Found
     post:
       tags:
+        - Park
         - Review
       description: "Post a review for this park"
       operationId: postParkReview
@@ -166,6 +167,9 @@ paths:
           description: OK
         "404":
           description: Park Not Found
+      security:
+        - jwt: []
+      
 
 components:
   schemas:
@@ -189,13 +193,18 @@ components:
     Specialization:
       type: string
       enum:
-        - Generic
         - Dogs
         - Cats
         - Bunnies
         - Reptiles
       xml:
         name: specialization
+    Features:
+      type: array
+      items:
+        type: string
+      xml:
+        name: features
     Tag:
       type: object
       properties:
@@ -210,7 +219,6 @@ components:
       required:
         - id
         - name
-        - specialization
         - location
         - photoUrls
         - operationalHours
@@ -224,7 +232,9 @@ components:
           example: Veizman Dog-Friendly
         specialization:
           $ref: "#/components/schemas/Specialization"
-        Location:
+        features:
+          $ref: "#/components/schemas/Features"
+        location:
           required:
             - address
             - geoLocation
@@ -311,9 +321,6 @@ components:
           schema:
             $ref: "#/components/schemas/Park"
   securitySchemes:
-    basic:
-      type: http
-      scheme: basic
     jwt:
       type: http
       scheme: bearer
