@@ -1,0 +1,408 @@
+openapi: 3.0.2
+info:
+  title: Pet-park MiniApp - OpenAPI 3.0.2
+  description: |-
+    This is a pet-park MiniApp that enables pet Owners to view nearby parks supportive of their precious pets, rate them, and engage about it.
+
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: timor.gruber@s.afeka.ac.il
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.1.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: https://parkstore3.swagger.io/api/v1
+tags:
+  - name: park
+    description: Everything about local parks
+  - name: review
+    description: Reviews
+
+paths:
+  /parks:
+    get:
+      tags:
+        - park
+      summary: Get all known parks
+      description: Returns a collection of parks
+      operationId: getParks
+      parameters:
+        - in: query
+          name: longitude
+          schema:
+            type: number
+            description: Local longitude
+            minimum: -180
+            maximum: 180
+            format: float
+        - in: query
+          name: latitude
+          schema:
+            type: number
+            description: Local latitude
+            minimum: -90
+            maximum: 90
+            format: float
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Park"
+        "400":
+          description: Bad Request - Invalid parameters
+
+  /parks/{park}:
+    get:
+      tags:
+        - park
+      summary: Find park by ID
+      description: Returns a single park
+      operationId: getParkById
+      parameters:
+        - name: park
+          in: path
+          description: ID of park to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Park"
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Park not found
+
+  /parks/{park}/images:
+    get:
+      tags:
+        - park
+      summary: Get all images of a given park
+      description: Returns collection of image URLs
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Park not found
+    post:
+      tags:
+        - park
+      summary: Upload an image of the given park
+      description: ""
+      operationId: addParkImage
+      parameters:
+        - name: park
+          in: path
+          description: ID of park to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: additionalMetadata
+          in: query
+          description: Additional Metadata
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+      security:
+        - jwt: []
+
+  /parks/{park}/reviews:
+    get:
+      tags:
+        - park
+        - review
+      summary: Get all reviews for the given park
+      description: Returns a collection of reviews
+      operationId: getParkReviews
+      parameters:
+        - name: park
+          in: path
+          description: ID of park to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: additionalMetadata
+          in: query
+          description: Additional Metadata
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Park Not Found
+    post:
+      tags:
+        - park
+        - review
+      summary: Post a review for this park
+      description: ""
+      operationId: postParkReview
+      parameters:
+        - name: park
+          in: path
+          description: ID of park to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: additionalMetadata
+          in: query
+          description: Additional Metadata
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Review"
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Park Not Found
+      security:
+        - jwt: []
+
+  /parks/{park}/reviews/{review}:
+    get:
+      tags:
+        - park
+        - review
+      summary: Get the given review for the given park
+      description: ""
+      operationId: getSpecificParkReview
+      parameters:
+        - name: park
+          in: path
+          description: ID of park to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: review
+          required: true
+          description: ID of the review to retrieve
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Park or Review Not Found
+
+components:
+  schemas:
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+          example: 437 Lytton
+        city:
+          type: string
+          example: Palo Alto
+        state:
+          type: string
+          example: CA
+        zip:
+          type: string
+          example: "94301"
+      xml:
+        name: address
+    Specialization:
+      type: string
+      enum:
+        - Dogs
+        - Cats
+        - Bunnies
+        - Reptiles
+      xml:
+        name: specialization
+    Features:
+      type: array
+      items:
+        type: string
+      xml:
+        name: features
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: tag
+    Park:
+      required:
+        - id
+        - name
+        - location
+        - photoUrls
+        - operationalHours
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        name:
+          type: string
+          example: Veizman Dog-Friendly
+        specialization:
+          $ref: "#/components/schemas/Specialization"
+        features:
+          $ref: "#/components/schemas/Features"
+        location:
+          required:
+            - address
+            - geoLocation
+          type: object
+          properties:
+            address:
+              $ref: "#/components/schemas/Address"
+            geoLocation:
+              $ref: "#/components/schemas/GeoLocation"
+        operationalHours:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyOperation"
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+        photoUrls:
+          type: array
+          xml:
+            wrapped: true
+          items:
+            type: string
+      xml:
+        name: Park
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+      xml:
+        name: "##default"
+    GeoLocation:
+      type: object
+      properties:
+        longitude:
+          type: number
+          format: float
+          example: 32.0853
+        latitude:
+          type: number
+          format: float
+          example: 34.7818
+      xml:
+        name: GeoLocation
+    DailyOperation:
+      type: object
+      properties:
+        open:
+          type: boolean
+        start:
+          type: string
+          example: "06:00"
+        stop:
+          type: string
+          example: "22:00"
+      xml:
+        name: DailyOperation
+    Review:
+      required:
+        - id
+        - rating
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        body:
+          type: string
+          maxLength: 2000
+          example: "This park is the best! Enjoyed every moment"
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+
+  requestBodies:
+    park:
+      description: park object that needs to be added to the store
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Park"
+
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
