@@ -35,14 +35,18 @@ paths:
           name: longitude
           schema:
             type: number
+            description: Local longitude
             minimum: -180
             maximum: 180
+            format: float
         - in: query
           name: latitude
           schema:
             type: number
+            description: Local latitude
             minimum: -90
             maximum: 90
+            format: float
       responses:
         "200":
           description: OK
@@ -217,7 +221,21 @@ paths:
       summary: Get the given review for the given park
       description: ""
       operationId: getSpecificParkReview
-      parameters: []
+      parameters:
+        - name: park
+          in: path
+          description: ID of park to update
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: review
+          required: true
+          description: ID of the review to retrieve
+          schema:
+            type: integer
+            format: int64
       responses:
         "200":
           description: OK
