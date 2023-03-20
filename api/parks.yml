@@ -204,6 +204,4 @@ components:
 
   securitySchemes:
     jwt:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+      $ref: "./schemas/security/jwt.yml"
