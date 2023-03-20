@@ -1,0 +1,8 @@
+type: string
+enum:
+  - Dogs
+  - Cats
+  - Bunnies
+  - Reptiles
+xml:
+  name: specialization

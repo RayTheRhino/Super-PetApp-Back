@@ -1,0 +1,10 @@
+Address:
+  $ref: "./address.yml"
+Tag:
+  $ref: "./tag.yml"
+Review:
+  $ref: "./review.yml"
+GeoLocation:
+  $ref: "./location/geo-location.yml"
+Park:
+  $ref: "./parks/park.yml"

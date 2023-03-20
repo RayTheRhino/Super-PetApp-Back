@@ -1,0 +1,8 @@
+type: object
+properties:
+  longitude:
+    $ref: "./longitude.yml"
+  latitude:
+    $ref: "./latitude.yml"
+xml:
+  name: GeoLocation
