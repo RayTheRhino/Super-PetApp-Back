@@ -35,26 +35,12 @@ paths:
           name: longitude
           description: Local longitude
           schema:
-            type: number
-            description: longitude
-            minimum: -180
-            maximum: 180
-            example: 32.0853
-            format: float
-            xml:
-              name: Longitude
+            $ref: '#/components/schemas/Longitude'
         - in: query
           name: latitude
           description: Local latitude
           schema:
-            type: number
-            description: latitude
-            minimum: -90
-            maximum: 90
-            example: 34.7818
-            format: float
-            xml:
-              name: Latitude
+            $ref: '#/components/schemas/Latitude'
       responses:
         '200':
           description: OK
@@ -213,14 +199,15 @@ components:
     Review:
       in: path
       name: review
-      required: true
       description: ID of the review to retrieve
+      required: true
       schema:
         type: integer
         format: int64
   schemas:
     Address:
       type: object
+      description: address
       properties:
         street:
           type: string
@@ -246,11 +233,19 @@ components:
           type: string
       xml:
         name: tag
+    Features:
+      type: array
+      description: object features
+      items:
+        type: string
+      xml:
+        name: Features
     Review:
       required:
         - id
         - rating
       type: object
+      description: review
       properties:
         id:
           type: integer
@@ -263,15 +258,48 @@ components:
           type: integer
           minimum: 1
           maximum: 5
+    Latitude:
+      type: number
+      description: latitude
+      minimum: -90
+      maximum: 90
+      example: 34.7818
+      format: float
+      xml:
+        name: Latitude
+    Longitude:
+      type: number
+      description: longitude
+      minimum: -180
+      maximum: 180
+      example: 32.0853
+      format: float
+      xml:
+        name: Longitude
     GeoLocation:
       type: object
+      description: geographical coordinates
       properties:
         longitude:
-          $ref: '#/paths/~1parks/get/parameters/0/schema'
+          $ref: '#/components/schemas/Longitude'
         latitude:
-          $ref: '#/paths/~1parks/get/parameters/1/schema'
+          $ref: '#/components/schemas/Latitude'
       xml:
         name: GeoLocation
+    DailyOperation:
+      type: object
+      description: daily operational hours
+      properties:
+        open:
+          type: boolean
+        start:
+          type: string
+          example: '06:00'
+        stop:
+          type: string
+          example: '22:00'
+      xml:
+        name: DailyOperation
     Park:
       required:
         - id
@@ -288,20 +316,9 @@ components:
           type: string
           example: Veizman Dog-Friendly
         specialization:
-          type: string
-          enum:
-            - Dogs
-            - Cats
-            - Bunnies
-            - Reptiles
-          xml:
-            name: specialization
+          $ref: '#/components/schemas/ParkSpecialization'
         features:
-          type: array
-          items:
-            type: string
-          xml:
-            name: features
+          $ref: '#/components/schemas/Features'
         location:
           required:
             - address
@@ -315,19 +332,7 @@ components:
         operationalHours:
           type: array
           items:
-            type: object
-            description: Daily operational Hours
-            properties:
-              open:
-                type: boolean
-              start:
-                type: string
-                example: '06:00'
-              stop:
-                type: string
-                example: '22:00'
-            xml:
-              name: DailyOperation
+            $ref: '#/components/schemas/DailyOperation'
         tags:
           type: array
           items:
@@ -340,6 +345,16 @@ components:
             type: string
       xml:
         name: Park
+    ParkSpecialization:
+      type: string
+      description: park specialization
+      enum:
+        - Dogs
+        - Cats
+        - Bunnies
+        - Reptiles
+      xml:
+        name: specialization
   securitySchemes:
     jwt:
       type: http

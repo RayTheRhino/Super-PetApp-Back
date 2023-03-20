@@ -15,7 +15,7 @@ properties:
   specialization:
     $ref: "./specialization.yml"
   features:
-    $ref: "./features.yml"
+    $ref: "../features.yml"
   location:
     required:
       - address
@@ -29,7 +29,7 @@ properties:
   operationalHours:
     type: array
     items:
-      $ref: "./daily-operation.yml"
+      $ref: "../daily-operation.yml"
   tags:
     type: array
     items:

@@ -2,6 +2,7 @@ required:
   - id
   - rating
 type: object
+description: review
 properties:
   id:
     type: integer
