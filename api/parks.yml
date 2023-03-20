@@ -35,12 +35,12 @@ paths:
           name: longitude
           description: Local longitude
           schema:
-            $ref: "#/components/schemas/Longitude"
+            $ref: "./schemas/location.yml#/Longitude"
         - in: query
           name: latitude
           description: Local latitude
           schema:
-            $ref: "#/components/schemas/Latitude"
+            $ref: "./schemas/location.yml#/Latitude"
       responses:
         "200":
           description: OK
@@ -49,7 +49,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Park"
+                  $ref: "./schemas/park.yml#/Park"
         "400":
           description: Bad Request - Invalid parameters
 
@@ -68,7 +68,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Park"
+                $ref: "./schemas/park.yml#/Park"
         "400":
           description: Invalid ID supplied
         "404":
@@ -139,7 +139,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Review"
+                  $ref: "./schemas/review.yml"
         "400":
           description: Invalid ID supplied
         "404":
@@ -157,7 +157,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Review"
+              $ref: "./schemas/review.yml"
       responses:
         "200":
           description: OK
@@ -178,14 +178,14 @@ paths:
       operationId: getSpecificParkReview
       parameters:
         - $ref: "#/components/parameters/Park"
-        - $ref: "#/components/parameters/Review"
+        - $ref: "./parameters/review.yml"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Review"
+                $ref: "./schemas/review.yml"
         "400":
           description: Invalid ID supplied
         "404":
@@ -201,174 +201,6 @@ components:
       schema:
         type: integer
         format: int64
-
-    Review:
-      in: path
-      name: review
-      required: true
-      description: ID of the review to retrieve
-      schema:
-        type: integer
-        format: int64
-
-  schemas:
-    Address:
-      type: object
-      properties:
-        street:
-          type: string
-          example: 437 Lytton
-        city:
-          type: string
-          example: Palo Alto
-        state:
-          type: string
-          example: CA
-        zip:
-          type: string
-          example: "94301"
-      xml:
-        name: address
-
-    Specialization:
-      type: string
-      enum:
-        - Dogs
-        - Cats
-        - Bunnies
-        - Reptiles
-      xml:
-        name: specialization
-
-    Features:
-      type: array
-      items:
-        type: string
-      xml:
-        name: features
-
-    Tag:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-      xml:
-        name: tag
-
-    Park:
-      required:
-        - id
-        - name
-        - location
-        - photoUrls
-        - operationalHours
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 123
-        name:
-          type: string
-          example: Veizman Dog-Friendly
-        specialization:
-          $ref: "#/components/schemas/Specialization"
-        features:
-          $ref: "#/components/schemas/Features"
-        location:
-          required:
-            - address
-            - geoLocation
-          type: object
-          properties:
-            address:
-              $ref: "#/components/schemas/Address"
-            geoLocation:
-              $ref: "#/components/schemas/GeoLocation"
-        operationalHours:
-          type: array
-          items:
-            $ref: "#/components/schemas/DailyOperation"
-        tags:
-          type: array
-          items:
-            $ref: "#/components/schemas/Tag"
-        photoUrls:
-          type: array
-          xml:
-            wrapped: true
-          items:
-            type: string
-      xml:
-        name: Park
-
-    Longitude:
-      type: number
-      description: longitude
-      minimum: -180
-      maximum: 180
-      example: 32.0853
-      format: float
-
-    Latitude:
-      type: number
-      description: latitude
-      minimum: -90
-      maximum: 90
-      example: 34.7818
-      format: float
-
-    GeoLocation:
-      type: object
-      properties:
-        longitude:
-          $ref: "#/components/schemas/Longitude"
-        latitude:
-          $ref: "#/components/schemas/Latitude"
-      xml:
-        name: GeoLocation
-
-    DailyOperation:
-      type: object
-      properties:
-        open:
-          type: boolean
-        start:
-          type: string
-          example: "06:00"
-        stop:
-          type: string
-          example: "22:00"
-      xml:
-        name: DailyOperation
-
-    Review:
-      required:
-        - id
-        - rating
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 123
-        body:
-          type: string
-          maxLength: 2000
-          example: "This park is the best! Enjoyed every moment"
-        rating:
-          type: integer
-          minimum: 1
-          maximum: 5
-
-  requestBodies:
-    park:
-      description: park object that needs to be added to the store
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Park"
 
   securitySchemes:
     jwt:

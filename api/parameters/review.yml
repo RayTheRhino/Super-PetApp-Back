@@ -1,0 +1,7 @@
+in: path
+name: review
+required: true
+description: ID of the review to retrieve
+schema:
+  type: integer
+  format: int64
