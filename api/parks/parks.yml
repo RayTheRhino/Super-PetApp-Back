@@ -1,8 +1,8 @@
 openapi: 3.0.2
 info:
-  title: Pet-Park MiniApp - OpenAPI 3.0.2
+  title: Pet-park MiniApp - OpenAPI 3.0.2
   description: |-
-    This is a Park-Park MiniApp that enables Park Owners to view nearby parks supportive of their precious Parks, rate them, and engage about it.
+    This is a pet-park MiniApp that enables pet Owners to view nearby parks supportive of their precious pets, rate them, and engage about it.
 
   termsOfService: http://swagger.io/terms/
   contact:
@@ -10,30 +10,62 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  version: 1.0.11
+  version: 0.1.0
 externalDocs:
   description: Find out more about Swagger
   url: http://swagger.io
 servers:
-  - url: https://Parkstore3.swagger.io/api/v3
+  - url: https://parkstore3.swagger.io/api/v3
 tags:
-  - name: Park
+  - name: park
     description: Everything about local parks
-  - name: Review
+  - name: review
     description: Reviews
 
 paths:
-  /v1/parks/{park-id}:
+  /v1/parks:
     get:
       tags:
-        - Park
-      summary: Find Park by ID
-      description: Returns a single Park
+        - park
+      summary: Get all known parks
+      description: Returns a collection of parks
+      operationId: getParks
+      parameters:
+        - in: query
+          name: longitude
+          schema:
+            type: number
+            minimum: -180
+            maximum: 180
+        - in: query
+          name: latitude
+          schema:
+            type: number
+            minimum: -90
+            maximum: 90
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Park"
+        "400":
+          description: Bad Request - Invalid parameters
+
+  /v1/parks/{park}:
+    get:
+      tags:
+        - park
+      summary: Find park by ID
+      description: Returns a single park
       operationId: getParkById
       parameters:
-        - name: park-id
+        - name: park
           in: path
-          description: ID of Park to return
+          description: ID of park to return
           required: true
           schema:
             type: integer
@@ -50,17 +82,36 @@ paths:
         "404":
           description: Park not found
 
-  /v1/parks/{park-id}/image:
+  /v1/parks/{park}/images:
+    get:
+      tags:
+        - park
+      summary: Get all images of a given park
+      description: Returns collection of image URLs
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Park not found
     post:
       tags:
-        - Park
-      summary: uploads an image
+        - park
+      summary: Upload an image of the given park
       description: ""
       operationId: addParkImage
       parameters:
-        - name: park-id
+        - name: park
           in: path
-          description: ID of Park to update
+          description: ID of park to update
           required: true
           schema:
             type: integer
@@ -87,41 +138,18 @@ paths:
       security:
         - jwt: []
 
-  /v1/parks/nearby:
+  /v1/parks/{park}/reviews:
     get:
       tags:
-        - Park
-      description: "Get All nearby parks"
-      operationId: getNearbyParks
-      parameters: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/GeoLocation"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Park"
-        "400":
-          description: Bad Request - Invalid Geo-Location
-  /v1/parks/{park-id}/review:
-    get:
-      tags:
-        - Park
-        - Review
-      description: "Get all reviews for the given park"
+        - park
+        - review
+      summary: Get all reviews for the given park
+      description: Returns a collection of reviews
       operationId: getParkReviews
       parameters:
-        - name: park-id
+        - name: park
           in: path
-          description: ID of Park to update
+          description: ID of park to update
           required: true
           schema:
             type: integer
@@ -135,18 +163,27 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+        "400":
+          description: Invalid ID supplied
         "404":
           description: Park Not Found
     post:
       tags:
-        - Park
-        - Review
-      description: "Post a review for this park"
+        - park
+        - review
+      summary: Post a review for this park
+      description: ""
       operationId: postParkReview
       parameters:
-        - name: park-id
+        - name: park
           in: path
-          description: ID of Park to update
+          description: ID of park to update
           required: true
           schema:
             type: integer
@@ -165,10 +202,33 @@ paths:
       responses:
         "200":
           description: OK
+        "400":
+          description: Invalid ID supplied
         "404":
           description: Park Not Found
       security:
         - jwt: []
+
+  /v1/parks/{park}/reviews/{review}:
+    get:
+      tags:
+        - park
+        - review
+      summary: Get the given review for the given park
+      description: ""
+      operationId: getSpecificParkReview
+      parameters: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Park or Review Not Found
 
 components:
   schemas:
@@ -298,8 +358,14 @@ components:
       xml:
         name: DailyOperation
     Review:
+      required:
+        - id
+        - rating
       type: object
       properties:
+        id:
+          type: integer
+          example: 123
         body:
           type: string
           maxLength: 2000
@@ -310,15 +376,13 @@ components:
           maximum: 5
 
   requestBodies:
-    Park:
-      description: Park object that needs to be added to the store
+    park:
+      description: park object that needs to be added to the store
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/Park"
-        application/xml:
-          schema:
-            $ref: "#/components/schemas/Park"
+
   securitySchemes:
     jwt:
       type: http
