@@ -15,7 +15,7 @@ externalDocs:
   description: Find out more about Swagger
   url: http://swagger.io
 servers:
-  - url: https://parkstore3.swagger.io/api/v3
+  - url: https://parkstore3.swagger.io/api/v1
 tags:
   - name: park
     description: Everything about local parks
@@ -23,7 +23,7 @@ tags:
     description: Reviews
 
 paths:
-  /v1/parks:
+  /parks:
     get:
       tags:
         - park
@@ -55,7 +55,7 @@ paths:
         "400":
           description: Bad Request - Invalid parameters
 
-  /v1/parks/{park}:
+  /parks/{park}:
     get:
       tags:
         - park
@@ -82,7 +82,7 @@ paths:
         "404":
           description: Park not found
 
-  /v1/parks/{park}/images:
+  /parks/{park}/images:
     get:
       tags:
         - park
@@ -138,7 +138,7 @@ paths:
       security:
         - jwt: []
 
-  /v1/parks/{park}/reviews:
+  /parks/{park}/reviews:
     get:
       tags:
         - park
@@ -209,7 +209,7 @@ paths:
       security:
         - jwt: []
 
-  /v1/parks/{park}/reviews/{review}:
+  /parks/{park}/reviews/{review}:
     get:
       tags:
         - park
