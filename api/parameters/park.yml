@@ -1,0 +1,7 @@
+in: path
+name: park
+description: ID of park to update
+required: true
+schema:
+  type: integer
+  format: int64

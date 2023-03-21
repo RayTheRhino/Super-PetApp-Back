@@ -1,0 +1,51 @@
+openapi: 3.0.2
+info:
+  title: Pet SuperApp - OpenAPI 3.0
+  description: |-
+    This is a Pet SuperApp that enables pet owners to be in control of their pets.
+    It allows them to view nearby parks and discuss about them.
+
+  termsOfService: http://swagger.io/terms/
+  contact:
+    name: SuperPetApp Group
+    email: tal.benita@s.afeka.ac.il
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.1.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: https://parkstore3.swagger.io/api/v1
+tags:
+  - name: park
+    description: Everything about local parks
+  - name: review
+    description: Reviews
+
+paths:
+  /parks:
+    $ref: "./paths/parks.yml"
+
+  /parks/{park}:
+    $ref: "./paths/park.yml"
+
+  /parks/{park}/images:
+    $ref: "./paths/park-images.yml"
+
+  /parks/{park}/reviews:
+    $ref: "./paths/park-reviews.yml"
+
+  /parks/{park}/reviews/{review}:
+    $ref: "./paths/park-review.yml"
+
+components:
+  parameters:
+    $ref: "./parameters/index.yml"
+
+  schemas:
+    $ref: "./schemas/index.yml"
+    
+  securitySchemes:
+    $ref: "./schemas/security/index.yml"
