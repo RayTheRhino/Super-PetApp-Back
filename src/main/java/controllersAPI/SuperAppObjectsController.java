@@ -17,7 +17,7 @@ public class SuperAppObjectsController {
         )
 
         public ObjectBoundary createObject(@RequestBody ObjectBoundary input){
-            input.setObjectId(new ObjectId("2023b.demo","1"));
+            input.setObjectId(new ObjectId("2023b.tal.benita","1"));
                 return input;
         }
 
