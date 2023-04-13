@@ -2,8 +2,10 @@ package superapp.logic;
 
 import java.util.List;
 
+import org.springframework.stereotype.Service;
 import superapp.bounderies.UserBoundary;
 
+@Service
 public class UserServiceRdb implements UsersService {
 	
 	
