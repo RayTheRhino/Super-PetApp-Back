@@ -19,7 +19,6 @@ import superapp.logic.SuperappConverterOfMapToJson;
 @Entity
 @Table(name="SuperappObjects")
 public class SuperappObjectsEntity {
-	//private ObjectId objectId;
     @Id
 	private String internalObjectId;
 	private String superapp;
@@ -28,10 +27,8 @@ public class SuperappObjectsEntity {
     private boolean active;
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationTimestamp;
-    //private Location location; TODO: we might need to change the type in Location the lat and lng to Double 
     private double lat;
     private double lng;
-    //private CreatedBy createdBy;
     private String byEmail;
     private String bySuperapp;
 	@Convert(converter = SuperappConverterOfMapToJson.class)

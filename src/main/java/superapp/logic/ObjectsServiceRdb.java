@@ -1,12 +1,9 @@
 package superapp.logic;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import superapp.bounderies.CreatedBy;
@@ -16,6 +13,7 @@ import superapp.bounderies.ObjectId;
 import superapp.bounderies.UserIdBoundary;
 import superapp.data.SuperappObjectsEntity;
 
+@Service
 public class ObjectsServiceRdb implements ObjectsService {
 	private ObjectCrud objectCrud;
 
@@ -26,29 +24,29 @@ public class ObjectsServiceRdb implements ObjectsService {
 
 	
 	@Override
+	@Transactional
 	public ObjectBoundary CreateObject(ObjectBoundary object) {
-		// TODO might need to update 
 		object.setObjectId(new ObjectId("Super Pet App",UUID.randomUUID().toString()));
+		object.setCreationTimestamp(new Date());
 		SuperappObjectsEntity entity = this.toEntity(object);
-		entity.setCreationTimestamp(new Date());
-		entity = this.objectCrud.save(entity);
-		
-		return this.toBoundary(entity);
+		objectCrud.save(entity);
+
+		return object;
 	}
 
 	@Override
 	@Transactional
 	public ObjectBoundary updateObject(String objectSuperApp, String internalObjectId, ObjectBoundary update) {
-		//Iterable<SuperappObjectsEntity> iterable = this.objectCrud.findAllById(internalObjectId);
-		// TODO Check the meaning of use of the objectSuperApp
+		//SuperappObjectsEntity exiating = this.objectCrud.findById(id).orElse(()->new Supe)
+
+
 		return null;
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public ObjectBoundary getSpecificObject(String objectSuperApp, String initernalObjectId) {
-		// TODO Check the meaning of use of the "objectSuperApp"
-		return null;
+	public Optional<ObjectBoundary> getSpecificObject(String objectSuperApp, String internalObjectId) {
+		return this.objectCrud.findById(internalObjectId).map(this::toBoundary);
 	}
 
 	@Override
@@ -56,12 +54,12 @@ public class ObjectsServiceRdb implements ObjectsService {
 	public List<ObjectBoundary> getAllObjects() {
 		Iterable<SuperappObjectsEntity> iterable = this.objectCrud.findAll();
 		Iterator<SuperappObjectsEntity> iterator = iterable.iterator();
-		List<ObjectBoundary> rv = new ArrayList<>();
+		List<ObjectBoundary> allObjList = new ArrayList<>();
 		while(iterator.hasNext()) {
 			ObjectBoundary boundary = toBoundary(iterator.next()); 
-			rv.add(boundary);
+			allObjList.add(boundary);
 		}
-		return rv;
+		return allObjList;
 	}
 
 	@Override
@@ -90,6 +88,7 @@ public class ObjectsServiceRdb implements ObjectsService {
 		SuperappObjectsEntity entity = new SuperappObjectsEntity();
 		
 		// TODO: discuss which attributes to entity will be default values
+		//the meaning of the to do is to throw exception
 		entity.setInternalObjectId(boundary.getObjectId().getInternalObjectId());
 		entity.setSuperapp(boundary.getObjectId().getSuperapp());
 		entity.setType(boundary.getType());

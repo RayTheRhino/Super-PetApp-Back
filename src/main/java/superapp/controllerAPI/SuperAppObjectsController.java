@@ -1,14 +1,24 @@
 package superapp.controllerAPI;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import superapp.bounderies.ObjectBoundary;
 import superapp.bounderies.ObjectId;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import superapp.bounderies.UserBoundary;
+import superapp.logic.ObjectsService;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 public class SuperAppObjectsController {
+
+        private ObjectsService objectsService;
+    @Autowired
+    public void setObjectsService(ObjectsService objectsService){
+        this.objectsService = objectsService;
+    }
         @RequestMapping(
                 path = {"/superapp/objects"},
                 method = {RequestMethod.POST},
@@ -17,8 +27,7 @@ public class SuperAppObjectsController {
         )
 
         public ObjectBoundary createObject(@RequestBody ObjectBoundary input){
-            input.setObjectId(new ObjectId("2023b.tal.benita","1"));
-                return input;
+                return objectsService.CreateObject(input);
         }
 
         @RequestMapping(
@@ -29,7 +38,7 @@ public class SuperAppObjectsController {
         public void updateObject ( @PathVariable("superapp") String superapp,
                                    @PathVariable("InternalObjectId") String InternalObjectId,
                                    @RequestBody ObjectBoundary input){
-                System.out.println("updated"+ input);
+                objectsService.updateObject(superapp,InternalObjectId,input);
         }
 
         @RequestMapping(
@@ -40,7 +49,7 @@ public class SuperAppObjectsController {
         public ObjectBoundary retrieveObject(
                 @PathVariable("superapp") String superapp,
                 @PathVariable("InternalObjectId") String InternalObjectId){
-                return new ObjectBoundary();
+                return objectsService.getSpecificObject(superapp,InternalObjectId);
         }
 
         @RequestMapping(
@@ -49,7 +58,8 @@ public class SuperAppObjectsController {
                 consumes = {MediaType.APPLICATION_JSON_VALUE},
                 produces = {MediaType.APPLICATION_JSON_VALUE})
         public ObjectBoundary[] getAllObjects (){
-            return new ArrayList<ObjectBoundary>().toArray(new ObjectBoundary[0]); //Change maybe?
+            List<ObjectBoundary> allObjects = objectsService.getAllObjects();
+            return allObjects.toArray(new ObjectBoundary[0]);
 
         }
 

@@ -1,8 +1,8 @@
 package superapp.bounderies;
 
 public class Location {
-    private double lat;
-    private double lng;
+    private Double lat;
+    private Double lng;
 
     public Location(double lat, double lng) {
         this.lat = lat;

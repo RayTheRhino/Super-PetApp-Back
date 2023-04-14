@@ -12,18 +12,17 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import superapp.bounderies.CommandId;
+import superapp.bounderies.InvokedBy;
 import superapp.bounderies.TargetObject;
 import superapp.logic.SuperappConverterOfMapToJson;
 @Entity
 @Table(name="MINIAPPCOMMANDS")
 public class MiniappCommandEntity {
-//  private CommandId commandId;
     @Id
 	private String commandId;
     private String commandSuperapp;
     private String commandMiniapp;
     private String command;
-//  private TargetObject targetObject;
     private String targetSuperapp;
     private String targetObjectId;
     @Temporal(TemporalType.TIMESTAMP)
@@ -31,8 +30,26 @@ public class MiniappCommandEntity {
 	@Convert(converter = SuperappConverterOfMapToJson.class)
 	@Lob
     private Map<String,Object> commandAttribute;
-	
-	public MiniappCommandEntity() {	
+	private String invokedByEmail;
+	private String invokedBySuperapp;
+
+	public String getInvokedByEmail() {
+		return invokedByEmail;
+	}
+
+	public void setInvokedByEmail(String invokedByEmail) {
+		this.invokedByEmail = invokedByEmail;
+	}
+
+	public String getInvokedBySuperapp() {
+		return invokedBySuperapp;
+	}
+
+	public void setInvokedBySuperapp(String invokedBySuperapp) {
+		this.invokedBySuperapp = invokedBySuperapp;
+	}
+
+	public MiniappCommandEntity() {
 		this.commandAttribute = new TreeMap<>();
 	}
 

@@ -1,4 +1,4 @@
-package superapp.bounderies;
+package superapp.logic;
 
 import org.springframework.data.repository.CrudRepository;
 

@@ -8,15 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import superapp.bounderies.CommandId;
-import superapp.bounderies.MiniAppCommandBoundary;
-import superapp.bounderies.ObjectId;
-import superapp.bounderies.TargetObject;
+import superapp.bounderies.*;
 import superapp.data.MiniappCommandEntity;
-import superapp.data.SuperappObjectsEntity;
 
 @Service
-public class MiniappCommandServiceRdb implements MIniappCommandsService {
+public class MiniappCommandServiceRdb implements MiniappCommandsService {
 	private MiniappCommandCrud miniappCommandCrud;
 	
 	
@@ -26,8 +22,19 @@ public class MiniappCommandServiceRdb implements MIniappCommandsService {
 	}
 
 	@Override
-	public Object invokeCommand(MiniAppCommandBoundary command) {
-		//TODO: add the command to database
+	public Object invokeCommand(MiniAppCommandBoundary command) { // For now it will just convert to entity and insert to db. Later add real logic...
+		try{
+			MiniappCommandEntity entity = this.toEntity(command);
+			if(entity!=null){
+				miniappCommandCrud.save(entity);
+				//For now just return the same object from request. Later change this to return the relevant object based on the request and logic
+				return command;
+			}
+		}catch (Exception ex){
+			System.out.println("Failed to invoke command: " + ex.getMessage());
+		}
+
+
 		return null;
 	}
 
@@ -43,7 +50,7 @@ public class MiniappCommandServiceRdb implements MIniappCommandsService {
 		}
 		return rv;
 	}
-	// TODO: check if we need to change to Optional<List<MiniAppCommandBoundary>>
+	// TODO:the meaning of the to do is to throw exception
 	@Override
 	@Transactional(readOnly = true) 
 	public List<MiniAppCommandBoundary> getAllMiniAppCommands(String miniappName) {
@@ -80,7 +87,7 @@ public class MiniappCommandServiceRdb implements MIniappCommandsService {
 		boundary.setTargetObject(new TargetObject(
 								 new ObjectId(entity.getTargetSuperapp(),
 										 	  entity.getTargetObjectId())));
-
+		boundary.setInvokedBy(new InvokedBy(new UserIdBoundary(entity.getInvokedByEmail(),entity.getInvokedBySuperapp())));
 		return boundary;
 		
 	}
@@ -89,6 +96,7 @@ public class MiniappCommandServiceRdb implements MIniappCommandsService {
 		MiniappCommandEntity entity = new MiniappCommandEntity();
 		
 		// TODO: discuss which attributes to entity will be default values
+		//the meaning of the to do is to throw exception
 		entity.setCommandId(boundary.getCommandId().getInternalCommandId());
 		entity.setCommandSuperapp(boundary.getCommandId().getSuperapp());
 		entity.setCommandMiniapp(boundary.getCommandId().getMiniapp());
@@ -97,6 +105,8 @@ public class MiniappCommandServiceRdb implements MIniappCommandsService {
 		entity.setTargetObjectId(boundary.getTargetObject().getObjectId().getInternalObjectId());
 		entity.setTargetSuperapp(boundary.getTargetObject().getObjectId().getSuperapp());
 		entity.setCommandAttribute(boundary.getCommandAttribute());
+		entity.setInvokedByEmail(boundary.getInvokedBy().getUserId().getEmail());
+		entity.setInvokedBySuperapp(boundary.getInvokedBy().getUserId().getSuperapp());
 		return entity;
 		
 	}

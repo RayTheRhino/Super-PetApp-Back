@@ -9,13 +9,14 @@ public class MiniAppCommandBoundary {
     private TargetObject targetObject;
     private Date invocationTimeStamp;
     private Map<String,Object> commandAttribute;
+    private InvokedBy invokedBy;
 
-    public MiniAppCommandBoundary(CommandId commandId, String command, TargetObject targetObject, Date invocationTimeStamp, Map<String, Object> commandAttribute) {
-        this.commandId = commandId;
-        this.command = command;
-        this.targetObject = targetObject;
-        this.invocationTimeStamp = invocationTimeStamp;
-        this.commandAttribute = commandAttribute;
+    public InvokedBy getInvokedBy() {
+        return invokedBy;
+    }
+
+    public void setInvokedBy(InvokedBy invokedBy) {
+        this.invokedBy = invokedBy;
     }
 
     public MiniAppCommandBoundary() {

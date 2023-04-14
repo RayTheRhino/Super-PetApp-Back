@@ -1,5 +1,6 @@
 package superapp.controllerAPI;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import superapp.bounderies.MiniAppCommandBoundary;
 import superapp.bounderies.ObjectId;
 import org.springframework.http.MediaType;
@@ -8,11 +9,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import superapp.logic.MiniappCommandsService;
 
 
 @RestController
 public class MiniAppCommandController {
-    //Post -1
+    private MiniappCommandsService miniappCommandsService;
+
+    @Autowired
+    public void setMiniappCommandsService(MiniappCommandsService miniappCommandsService){
+        this.miniappCommandsService = miniappCommandsService;
+    }
     @RequestMapping(
             path = {"/superapp/miniapp/{miniAppName}"},
             method = {RequestMethod.POST},
@@ -21,8 +28,7 @@ public class MiniAppCommandController {
     public Object invokeMiniApp (
             @PathVariable("miniAppName") String miniAppName,
             @RequestBody MiniAppCommandBoundary miniAppCommandBoundary) {
-        return null;
-
+        return miniappCommandsService.invokeCommand(miniAppCommandBoundary);
     }
 
 }
