@@ -7,6 +7,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import superapp.logic.UsersService;
 
+import java.util.Optional;
+
 @RestController
 public class UserController {
     private UsersService usersService;
@@ -30,7 +32,7 @@ public class UserController {
             method = {RequestMethod.GET},
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
-    public UserBoundary loginAndRetriveUserDetails (
+    public Optional<UserBoundary> loginAndRetriveUserDetails (
             @PathVariable("superapp") String superapp,
             @PathVariable("email") String email){
         return  usersService.login(superapp,email);
@@ -44,8 +46,7 @@ public class UserController {
     public void updateUserDetails (
             @PathVariable("superapp") String superapp,
             @PathVariable("userEmail") String userEmail,
-            @RequestBody UserBoundary input)
-    {
+            @RequestBody UserBoundary input) throws Exception {
             usersService.update(superapp , userEmail ,input);
     }
 

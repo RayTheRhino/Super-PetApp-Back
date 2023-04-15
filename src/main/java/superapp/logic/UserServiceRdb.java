@@ -1,9 +1,6 @@
 package superapp.logic;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,25 +21,42 @@ public class UserServiceRdb implements UsersService {
 	@Override
 	@Transactional
 	public UserBoundary createUser(UserBoundary user) {
-		user.setUserId(new UserIdBoundary("", UUID.randomUUID().toString()));
+		user.setUserId(new UserIdBoundary(user.getUserId().getEmail(), "Super Pet App"));
 		UserEntity entity = this.toEntity(user);
 		entity = this.userCrud.save(entity);
 
-		return this.toBoundary(entity);
+		return user;
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public UserBoundary login(String userSuperApp, String userEmail) {
-		// TODO: finish
-		return null;
+	public Optional<UserBoundary> login(String userSuperApp, String userEmail) {
+		return this.userCrud.findById(userEmail).map(this::toBoundary);
 	}
 
 	@Override
 	@Transactional
-	public UserBoundary update(String userSuperApp, String userEmail, UserBoundary update) {
-		// TODO: finish
-		return null;
+	public UserBoundary update(String userSuperApp, String userEmail, UserBoundary update) throws Exception {
+		UserEntity existing = this.userCrud.findById(userEmail).orElseThrow(() -> new Exception("could not find message for update by id: " + userEmail)); //TODO: Change to custom exceptions!
+		if(update.getUserId()!=null){
+			if(update.getRole()!=null){
+				existing.setRole(this.toEntityAsEnum(update.getRole()));
+			}
+			if(update.getAvatar()!=null){
+				existing.setAvatar(update.getAvatar());
+			}
+			if(update.getUsername()!=null){
+				update.setUsername(update.getUsername());
+			}
+		}
+		if(userSuperApp!=null){
+			existing.setSuperapp(update.getUserId().getSuperapp());
+		}
+		if(userEmail!=null){
+			existing.setEmail(update.getUserId().getEmail());
+		}
+		existing = userCrud.save(existing);
+		return this.toBoundary(existing);
 	}
 
 	@Override
@@ -82,8 +96,7 @@ public class UserServiceRdb implements UsersService {
 	}
 
 	private UserEntity toEntity(UserBoundary boundary) {
-		//TODO: exceptions
-		//the meaning of the to do is to throw exception
+		//TODO:  throw exception
 		UserEntity entity = new UserEntity();
 		entity.setUserName(boundary.getUsername());
 		entity.setAvatar(boundary.getAvatar());

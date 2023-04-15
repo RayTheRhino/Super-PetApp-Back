@@ -37,7 +37,7 @@ public class SuperAppObjectsController {
         )
         public void updateObject ( @PathVariable("superapp") String superapp,
                                    @PathVariable("InternalObjectId") String InternalObjectId,
-                                   @RequestBody ObjectBoundary input){
+                                   @RequestBody ObjectBoundary input) throws Exception {
                 objectsService.updateObject(superapp,InternalObjectId,input);
         }
 
@@ -48,8 +48,8 @@ public class SuperAppObjectsController {
                 produces = {MediaType.APPLICATION_JSON_VALUE})
         public ObjectBoundary retrieveObject(
                 @PathVariable("superapp") String superapp,
-                @PathVariable("InternalObjectId") String InternalObjectId){
-                return objectsService.getSpecificObject(superapp,InternalObjectId);
+                @PathVariable("InternalObjectId") String InternalObjectId) throws Exception {
+                return objectsService.getSpecificObject(superapp,InternalObjectId).orElseThrow(()->new Exception("could not find message by id: " + InternalObjectId)); //TODO: Change to custom exception
         }
 
         @RequestMapping(

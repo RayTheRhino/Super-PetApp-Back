@@ -10,7 +10,7 @@ public interface ObjectsService {
 	
 	public ObjectBoundary CreateObject(ObjectBoundary object);
 
-	public ObjectBoundary updateObject(String objectSuperApp, String internalObjectId, ObjectBoundary update);
+	public ObjectBoundary updateObject(String objectSuperApp, String internalObjectId, ObjectBoundary update) throws Exception;
 
 	public Optional<ObjectBoundary> getSpecificObject(String objectSuperApp, String initernalObjectId);
 

@@ -1,17 +1,17 @@
 package superapp.logic;
 
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.stereotype.Service;
 import superapp.bounderies.UserBoundary;
 
 public interface UsersService {
 
 	public UserBoundary createUser(UserBoundary user);
 	
-	public UserBoundary login(String userSuperApp, String userEmail);
+	public Optional<UserBoundary> login(String userSuperApp, String userEmail);
 	
-	public UserBoundary update(String userSuperApp, String userEmail, UserBoundary update);
+	public UserBoundary update(String userSuperApp, String userEmail, UserBoundary update) throws Exception;
 	
 	public List<UserBoundary> getAllUsers();
 	
