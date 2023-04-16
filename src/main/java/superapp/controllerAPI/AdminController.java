@@ -67,7 +67,7 @@ public class AdminController {
     }
 
     @RequestMapping(
-            path = {"/superapp/admin/miniapps"},
+            path = {"/superapp/admin/miniapp"},
             method = {RequestMethod.GET},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public MiniAppCommandBoundary[] exportAllMiniAppCommands (){
@@ -76,7 +76,7 @@ public class AdminController {
     }
 
     @RequestMapping(
-            path = {"/superapp/admin/miniapps/{miniAppName}"},
+            path = {"/superapp/admin/miniapp/{miniAppName}"},
             method = {RequestMethod.GET},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public MiniAppCommandBoundary[] exportCommandsHistoryOfspecificMiniApp (@PathVariable("miniAppName") String miniAppName){

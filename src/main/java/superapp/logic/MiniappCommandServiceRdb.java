@@ -34,6 +34,7 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 				entity.setCommandMiniapp(command.getCommandId().getMiniapp());
 				entity.setInvocationTimeStamp(new Date());
 				miniappCommandCrud.save(entity);
+				command = this.toBoundary(entity);
 				//For now just return the same object from request. Later change this to return the relevant object based on the request and logic
 				return command;
 			}
