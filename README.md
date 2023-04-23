@@ -1,4 +1,4 @@
-# README #
+# PETAPP #
 
 ### What is this app about? ###
 
