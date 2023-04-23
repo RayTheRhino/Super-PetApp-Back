@@ -20,5 +20,7 @@ will contain:
 * OpenAPI
 
 ### Frontend Stack ###
-*JavaScript -React
+*JavaScript 
+*React
 *Css
+*Scss
