@@ -16,7 +16,9 @@ will contain:
 
 * Java Spring
 * Tomcat
+* RestAPI
 * MongoDB
+* GoogleAPI
 * OpenAPI
 
 ### Frontend Stack ###
