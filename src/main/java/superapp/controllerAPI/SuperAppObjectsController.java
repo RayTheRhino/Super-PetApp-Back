@@ -45,18 +45,16 @@ public class SuperAppObjectsController {
         @RequestMapping(
                 path = {"/superapp/objects/{superapp}/{InternalObjectId}"},
                 method = {RequestMethod.GET},
-                consumes = {MediaType.APPLICATION_JSON_VALUE},
                 produces = {MediaType.APPLICATION_JSON_VALUE})
         public ObjectBoundary retrieveObject(
                 @PathVariable("superapp") String superapp,
                 @PathVariable("InternalObjectId") String InternalObjectId) {
-                return objectsService.getSpecificObject(superapp,InternalObjectId).orElseThrow(()->new SuperappObjectNotFoundException("could not find message by id: " + InternalObjectId)); //TODO: Change to custom exception
+                return objectsService.getSpecificObject(superapp,InternalObjectId).orElseThrow(()->new SuperappObjectNotFoundException("could not find message by id: " + InternalObjectId));
         }
 
         @RequestMapping(
                 path = {"/superapp/objects"},
                 method = {RequestMethod.GET},
-                consumes = {MediaType.APPLICATION_JSON_VALUE},
                 produces = {MediaType.APPLICATION_JSON_VALUE})
         public ObjectBoundary[] getAllObjects (){
             List<ObjectBoundary> allObjects = objectsService.getAllObjects();

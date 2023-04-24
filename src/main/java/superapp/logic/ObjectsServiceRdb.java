@@ -42,39 +42,22 @@ public class ObjectsServiceRdb implements ObjectsService {
             								() -> new SuperappObjectNotFoundException(
             										"could not find message for update by id: "
             										+ internalObjectId));
-//            if (update.getObjectId() != null) {
-//                if (update.getObjectId().getInternalObjectId() != null) {
-//                    existing.setInternalObjectId(update.getObjectId().getInternalObjectId());
-//                }
-//                if (update.getObjectId().getSuperapp() != null) {
-//                    existing.setSuperapp(update.getObjectId().getSuperapp());
-//                }
-//            } /// Dont change the id or superapp with update 
             if (update.getType() != null) {
                 existing.setType(update.getType());
             }
             if (update.getAlias() != null) {
                 existing.setAlias(update.getAlias());
             }
-            existing.setActive(update.getActive());
+            if (update.getActive() != null)
+                existing.setActive(update.getActive());
 
-//            if (update.getCreationTimestamp() != null) {
-//                existing.setCreationTimestamp(update.getCreationTimestamp());
-//            } /// Dont change the timestampcreation with update 
             if (update.getLocation() != null) {
                 existing.setLat(update.getLocation().getLat());
                 existing.setLng(update.getLocation().getLng());
             }
-//            if (update.getCreatedBy() != null) {
-//                if (update.getCreatedBy().getUserId() != null) {
-//                    if (update.getCreatedBy().getUserId().getEmail() != null) {
-//                        existing.setByEmail(update.getCreatedBy().getUserId().getEmail());
-//                    }
-//                    if (update.getCreatedBy().getUserId().getSuperapp() != null) {
-//                        existing.setBySuperapp(update.getCreatedBy().getUserId().getSuperapp());
-//                    }
-//                }
-//            } /// Dont change the createdby update 
+            if (!update.getObjectDetails().isEmpty())
+                existing.setObjectDetails(update.getObjectDetails());
+
             existing = objectCrud.save(existing);
             return this.toBoundary(existing);
     }
@@ -123,7 +106,7 @@ public class ObjectsServiceRdb implements ObjectsService {
     private SuperappObjectsEntity toEntity(ObjectBoundary boundary) {
         SuperappObjectsEntity entity = new SuperappObjectsEntity();
 
-        // TODO:  throw exception
+
         entity.setInternalObjectId(boundary.getObjectId().getInternalObjectId());
         entity.setSuperapp(boundary.getObjectId().getSuperapp());
         if (boundary.getType() != null)

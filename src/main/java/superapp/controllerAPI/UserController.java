@@ -30,7 +30,6 @@ public class UserController {
     @RequestMapping(
             path = {"/superapp/users/login/{superapp}/{email}"},
             method = {RequestMethod.GET},
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public UserBoundary loginAndRetriveUserDetails (
             @PathVariable("superapp") String superapp,

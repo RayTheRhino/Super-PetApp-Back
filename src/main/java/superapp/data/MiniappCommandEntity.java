@@ -16,7 +16,7 @@ import superapp.logic.SuperappConverterOfMapToJson;
 @Table(name="MiniappCommands")
 public class MiniappCommandEntity {
     @Id
-	private String commandId;
+	private String commandId; //TODO: change id
     private String commandSuperapp;
     private String commandMiniapp;
     private String command;

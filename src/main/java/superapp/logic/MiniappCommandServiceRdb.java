@@ -29,9 +29,6 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 		try{
 			MiniappCommandEntity entity = this.toEntity(command);
 			if(entity!=null){
-				entity.setCommandId(UUID.randomUUID().toString());
-				entity.setCommandSuperapp("SuperPetApp");
-				entity.setCommandMiniapp(command.getCommandId().getMiniapp());
 				entity.setInvocationTimeStamp(new Date());
 				miniappCommandCrud.save(entity);
 				command = this.toBoundary(entity);
@@ -102,44 +99,54 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 	
 	private MiniappCommandEntity toEntity(MiniAppCommandBoundary boundary) {
 		MiniappCommandEntity entity = new MiniappCommandEntity();
-		
-		// TODO: discuss which attributes to entity will be default values
-		//the meaning of the to do is to throw exception
-		entity.setCommandId(boundary.getCommandId().getInternalCommandId());
-		entity.setCommandSuperapp(boundary.getCommandId().getSuperapp());
-		entity.setCommandMiniapp(boundary.getCommandId().getMiniapp());
-		entity.setCommand(boundary.getCommand());
+
+		if (boundary.getCommandId() != null) {
+			entity.setCommandId(boundary.getCommandId().getInternalCommandId());
+			entity.setCommandSuperapp(boundary.getCommandId().getSuperapp());
+			entity.setCommandMiniapp(boundary.getCommandId().getMiniapp());
+		}
+		else {
+			entity.setCommandId(UUID.randomUUID().toString());
+			entity.setCommandSuperapp("SuperPetApp");
+			entity.setCommandMiniapp("");
+		}
+		if (boundary.getCommand() != null)
+			entity.setCommand(boundary.getCommand());
+		else
+			entity.setCommand("");
 		if (boundary.getInvocationTimeStamp() != null)
 			entity.setInvocationTimeStamp(boundary.getInvocationTimeStamp());
 		else
 			entity.setInvocationTimeStamp(new Date());
-		if (boundary.getTargetObject() != null 
-				&& boundary.getTargetObject().getObjectId() != null 
+		if (boundary.getTargetObject() != null
+				&& boundary.getTargetObject().getObjectId() != null
 				&& boundary.getTargetObject().getObjectId().getInternalObjectId() != null)
 			entity.setTargetObjectId(boundary.getTargetObject().getObjectId().getInternalObjectId());
-		else 
+		else
 			entity.setTargetObjectId("");
-		if (boundary.getTargetObject() != null 
-				&& boundary.getTargetObject().getObjectId() != null 
+		if (boundary.getTargetObject() != null
+				&& boundary.getTargetObject().getObjectId() != null
 				&& boundary.getTargetObject().getObjectId().getSuperapp() != null)
 			entity.setTargetSuperapp(boundary.getTargetObject().getObjectId().getSuperapp());
+		else
+			entity.setTargetSuperapp("SuperPetApp");
 		if (boundary.getCommandAttribute() != null)
 			entity.setCommandAttribute(boundary.getCommandAttribute());
 		// else, do nothing , there is already a treemap in constructor
-		if (boundary.getInvokedBy() != null 
-				&& boundary.getInvokedBy().getUserId() != null 
+		if (boundary.getInvokedBy() != null
+				&& boundary.getInvokedBy().getUserId() != null
 				&& boundary.getInvokedBy().getUserId().getEmail() != null)
 			entity.setInvokedByEmail(boundary.getInvokedBy().getUserId().getEmail());
 		else
 			entity.setInvokedByEmail("");
-		if (boundary.getInvokedBy() != null 
-				&& boundary.getInvokedBy().getUserId() != null 
+		if (boundary.getInvokedBy() != null
+				&& boundary.getInvokedBy().getUserId() != null
 				&& boundary.getInvokedBy().getUserId().getEmail() != null)
 			entity.setInvokedBySuperapp(boundary.getInvokedBy().getUserId().getSuperapp());
 		else
 			entity.setInvokedBySuperapp("SuperPetApp");
 		return entity;
-		
+
 	}
 
 }

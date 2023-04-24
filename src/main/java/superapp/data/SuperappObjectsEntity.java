@@ -20,7 +20,7 @@ import superapp.logic.SuperappConverterOfMapToJson;
 @Table(name="SuperappObjects")
 public class SuperappObjectsEntity {
     @Id
-	private String internalObjectId;
+	private String internalObjectId; //TODO: change id
 	private String superapp;
     private String type;
     private String alias;
