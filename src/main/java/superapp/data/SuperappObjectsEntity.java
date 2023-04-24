@@ -11,9 +11,6 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import superapp.bounderies.CreatedBy;
-import superapp.bounderies.Location;
-import superapp.bounderies.ObjectId;
 import superapp.logic.SuperappConverterOfMapToJson;
 
 @Entity

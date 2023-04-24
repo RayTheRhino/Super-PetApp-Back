@@ -28,7 +28,7 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 		
 		try{
 			MiniappCommandEntity entity = this.toEntity(command);
-			if(entity!=null){
+			if(entity!=null){ //TODO: change this, its always true
 				entity.setInvocationTimeStamp(new Date());
 				miniappCommandCrud.save(entity);
 				command = this.toBoundary(entity);
