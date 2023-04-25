@@ -9,8 +9,10 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name="UserEntity")
 public class UserEntity {
-	@Id private String email; //TODO: change id
-	private String superapp;
+//	@Id private String email; //TODO: change id (Changed!)
+//	private String superapp;
+	@Id
+	private String userId; // userId = superapp + email
 	private String userName;
 	private String avatar;
 	@Enumerated(EnumType.STRING)
@@ -28,22 +30,17 @@ public class UserEntity {
 		this.avatar = avatar;
 	}
 
-	public String getEmail() {
-		return email;
+	public String getUserId() {
+		return userId;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 
-	public String getSuperapp() {
-		return superapp;
-	}
+	public String getSuperApp() { return userId.split("/")[0];}
 
-	public void setSuperapp(String superapp) {
-		this.superapp = superapp;
-	}
-
+	public String getEmail() { return userId.split("/")[1];}
 	public String getUserName() {
 		return userName;
 	}
@@ -63,8 +60,7 @@ public class UserEntity {
 	@Override
 	public String toString() {
 		return "UserEntity{" +
-				"email='" + email + '\'' +
-				", superapp='" + superapp + '\'' +
+				"userId='" + userId + '\'' +
 				", userName='" + userName + '\'' +
 				", avatar='" + avatar + '\'' +
 				", role=" + role +

@@ -25,22 +25,26 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 
 	@Override
 	public Object invokeCommand(MiniAppCommandBoundary command) { // For now it will just convert to entity and insert to db. Later add real logic...
-		
-		try{
-			MiniappCommandEntity entity = this.toEntity(command);
-			if(entity!=null){ //TODO: change this, its always true
-				entity.setInvocationTimeStamp(new Date());
-				miniappCommandCrud.save(entity);
-				command = this.toBoundary(entity);
-				//For now just return the same object from request. Later change this to return the relevant object based on the request and logic
-				return command;
-			}
-		}catch (Exception ex){
-			System.out.println("Failed to invoke command: " + ex.getMessage());
-		}
 
+		command.setCommandId(new CommandId("SuperPetApp",command.getCommandId().getMiniapp(),UUID.randomUUID().toString()));
+		MiniappCommandEntity entity = this.toEntity(command);
+		entity.setInvocationTimeStamp(new Date());
+		miniappCommandCrud.save(entity);
+		command = this.toBoundary(entity);
+		return command;
+//		try{
+//			MiniappCommandEntity entity = this.toEntity(command);
+//			if(entity!=null){ //TODO: change this, its always true
+//				entity.setInvocationTimeStamp(new Date());
+//				miniappCommandCrud.save(entity);
+//				command = this.toBoundary(entity);
+//				//For now just return the same object from request. Later change this to return the relevant object based on the request and logic
+//				return command;
+//			}
+//		}catch (Exception ex){
+//			System.out.println("Failed to invoke command: " + ex.getMessage());
+//		}
 
-		return null;
 	}
 
 	@Override
@@ -55,7 +59,6 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 		}
 		return rv;
 	}
-	// TODO:the meaning of the to do is to throw exception
 	@Override
 	@Transactional(readOnly = true) 
 	public List<MiniAppCommandBoundary> getAllMiniAppCommands(String miniappName) {
@@ -64,7 +67,7 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 		List<MiniAppCommandBoundary> rv = new ArrayList<>();
 		while (iterator.hasNext()) {
 			MiniappCommandEntity entity = iterator.next();
-			if (entity.getCommandMiniapp().equals(miniappName))
+			if (entity.getCommandMiniApp().equals(miniappName))
 			{	
 				MiniAppCommandBoundary boundary = this.toBoundary(entity); 
 				rv.add(boundary);
@@ -83,9 +86,9 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 	private MiniAppCommandBoundary toBoundary(MiniappCommandEntity entity) {
 		MiniAppCommandBoundary boundary = new MiniAppCommandBoundary();
 		
-		boundary.setCommandId(new CommandId(entity.getCommandSuperapp(),
-											entity.getCommandMiniapp(),
-											entity.getCommandId()));
+		boundary.setCommandId(new CommandId(entity.getCommandSuperApp(),
+											entity.getCommandMiniApp(),
+											entity.getCommandInternalId()));
 		boundary.setCommand(entity.getCommand());
 		boundary.setCommandAttribute(entity.getCommandAttribute());
 		boundary.setInvocationTimeStamp(entity.getInvocationTimeStamp());
@@ -101,14 +104,14 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 		MiniappCommandEntity entity = new MiniappCommandEntity();
 
 		if (boundary.getCommandId() != null) {
-			entity.setCommandId(boundary.getCommandId().getInternalCommandId());
-			entity.setCommandSuperapp(boundary.getCommandId().getSuperapp());
-			entity.setCommandMiniapp(boundary.getCommandId().getMiniapp());
+			String objectId = boundary.getCommandId().getSuperapp()+
+							"/" + boundary.getCommandId().getMiniapp()+
+							"/" + boundary.getCommandId().getInternalCommandId();
+			entity.setCommandId(objectId);
 		}
 		else {
-			entity.setCommandId(UUID.randomUUID().toString());
-			entity.setCommandSuperapp("SuperPetApp");
-			entity.setCommandMiniapp("");
+			String id = UUID.randomUUID().toString();
+			entity.setCommandId("SuperPetApp/default/"+id);
 		}
 		if (boundary.getCommand() != null)
 			entity.setCommand(boundary.getCommand());

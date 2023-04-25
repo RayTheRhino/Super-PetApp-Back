@@ -3,19 +3,19 @@ package superapp.bounderies;
 public class UserBoundary {
     private UserIdBoundary userId;
     private String role;
-    private String username;
+    private String userName;
     private String avatar;
 
     public UserBoundary(NewUserBoundary newUserBoundary, String superapp) {
         this.userId = new UserIdBoundary(newUserBoundary.getEmail() , superapp);
-        role = newUserBoundary.getRole();
-        username = newUserBoundary.getUsername();
-        avatar = newUserBoundary.getAvatar();
+        this.role = newUserBoundary.getRole();
+        this.userName = newUserBoundary.getUsername();
+        this.avatar = newUserBoundary.getAvatar();
     }
     public UserBoundary(UserIdBoundary userId, String role, String username, String avatar) {
         this.userId = userId;
         this.role = role;
-        this.username = username;
+        this.userName = username;
         this.avatar = avatar;
     }
 
@@ -39,11 +39,11 @@ public class UserBoundary {
     }
 
     public String getUserName() {
-        return username;
+        return userName;
     }
 
     public void setUserName(String username) {
-        this.username = username;
+        this.userName = username;
     }
 
     public String getAvatar() {

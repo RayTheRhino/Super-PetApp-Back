@@ -2,6 +2,6 @@ package superapp.data;
 
 public enum UserRole {
 	MINIAPP_USER,
-	SUPER_USER,
+	SUPERAPP_USER,
 	ADMIN;
 }

@@ -30,6 +30,7 @@ public class ObjectsServiceRdb implements ObjectsService {
         object.setCreationTimestamp(new Date());
         SuperappObjectsEntity entity = this.toEntity(object);
         objectCrud.save(entity);
+        object = toBoundary(entity);
 
         return object;
     }
@@ -38,7 +39,7 @@ public class ObjectsServiceRdb implements ObjectsService {
     @Transactional
     public ObjectBoundary updateObject(String objectSuperApp, String internalObjectId, ObjectBoundary update) {
 
-            SuperappObjectsEntity existing = this.objectCrud.findById(internalObjectId).orElseThrow(
+            SuperappObjectsEntity existing = this.objectCrud.findById(objectSuperApp+"/"+internalObjectId).orElseThrow(
             								() -> new SuperappObjectNotFoundException(
             										"could not find message for update by id: "
             										+ internalObjectId));
@@ -65,7 +66,7 @@ public class ObjectsServiceRdb implements ObjectsService {
     @Override
     @Transactional(readOnly = true)
     public Optional<ObjectBoundary> getSpecificObject(String objectSuperApp, String internalObjectId) {
-        return this.objectCrud.findById(internalObjectId).map(this::toBoundary);
+        return this.objectCrud.findById(objectSuperApp+"/"+internalObjectId).map(this::toBoundary);
     }
 
     @Override
@@ -90,7 +91,7 @@ public class ObjectsServiceRdb implements ObjectsService {
     private ObjectBoundary toBoundary(SuperappObjectsEntity entity) {
         ObjectBoundary boundary = new ObjectBoundary();
 
-        boundary.setObjectId(new ObjectId(entity.getSuperapp(), entity.getInternalObjectId()));
+        boundary.setObjectId(new ObjectId(entity.getObjectSuperapp(), entity.getObjectInternalId()));
         boundary.setType(entity.getType());
         boundary.setAlias(entity.getAlias());
         boundary.setActive(entity.getActive());
@@ -106,9 +107,8 @@ public class ObjectsServiceRdb implements ObjectsService {
     private SuperappObjectsEntity toEntity(ObjectBoundary boundary) {
         SuperappObjectsEntity entity = new SuperappObjectsEntity();
 
-
-        entity.setInternalObjectId(boundary.getObjectId().getInternalObjectId());
-        entity.setSuperapp(boundary.getObjectId().getSuperapp());
+        entity.setObjectId(boundary.getObjectId().getSuperapp()
+                + "/" + boundary.getObjectId().getInternalObjectId());
         if (boundary.getType() != null)
         	entity.setType(boundary.getType());
         else

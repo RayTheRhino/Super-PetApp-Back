@@ -31,13 +31,13 @@ public class UserServiceRdb implements UsersService {
 	@Override
 	@Transactional(readOnly = true)
 	public Optional<UserBoundary> login(String userSuperApp, String userEmail) {
-		return this.userCrud.findById(userEmail).map(this::toBoundary);
+		return this.userCrud.findById(userSuperApp+"/"+userEmail).map(this::toBoundary);
 	}
 
 	@Override
 	@Transactional
 	public UserBoundary update(String userSuperApp, String userEmail, UserBoundary update) {
-		UserEntity existing = this.userCrud.findById(userEmail).orElseThrow(
+		UserEntity existing = this.userCrud.findById(userSuperApp+"/"+userEmail).orElseThrow(
 							  () -> new UserNotFoundException("could not find message for update by id: "
 							  + userEmail));
 		if(update.getRole()!=null){
@@ -81,7 +81,7 @@ public class UserServiceRdb implements UsersService {
 	}
 	private UserBoundary toBoundary(UserEntity entity) {
 		UserBoundary boundary = new UserBoundary();
-		boundary.setUserId(new UserIdBoundary(entity.getEmail(),entity.getSuperapp()));
+		boundary.setUserId(new UserIdBoundary(entity.getEmail(),entity.getSuperApp()));
 		boundary.setRole(entity.getRole().name());
 		boundary.setAvatar(entity.getAvatar());
 		boundary.setUserName(entity.getUserName());
@@ -92,7 +92,9 @@ public class UserServiceRdb implements UsersService {
 	private UserEntity toEntity(UserBoundary boundary) {
 
 		UserEntity entity = new UserEntity();
-		
+
+		entity.setUserId(boundary.getUserId().getSuperapp()+"/"+boundary.getUserId().getEmail());
+
 		if (boundary.getUserName() != null)
 			entity.setUserName(boundary.getUserName());
 		else
@@ -105,16 +107,7 @@ public class UserServiceRdb implements UsersService {
 			entity.setRole(toEntityAsEnum(boundary.getRole()));
 		else
 			entity.setRole(UserRole.MINIAPP_USER);
-		if (boundary.getUserId() != null 
-				&& boundary.getUserId().getSuperapp() != null)
-			entity.setSuperapp(boundary.getUserId().getSuperapp());
-		else
-			entity.setSuperapp("SuperPetApp");
-		if (boundary.getUserId() != null 
-				&& boundary.getUserId().getEmail() != null)
-			entity.setEmail(boundary.getUserId().getEmail());
-		else
-			entity.setEmail("exemple@email.com");
+
 		return entity;
 
 	}

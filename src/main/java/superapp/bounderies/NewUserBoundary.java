@@ -1,41 +1,21 @@
 package superapp.bounderies;
 
 public class NewUserBoundary{
-    private String userId;
-    private String superapp;
+
     private String email;
     private String role;
-    private String username;
+    private String userName;
     private String avatar;
 
-    public NewUserBoundary(String userId, String superapp, String email, String role, String username, String avatar) {
-        this.userId = userId;
-        this.superapp = superapp;
+    public NewUserBoundary( String email, String role, String username, String avatar) {
         this.email = email;
         this.role = role;
-        this.username = username;
+        this.userName = username;
         this.avatar = avatar;
     }
 
     public NewUserBoundary() {
     }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getSuperapp() {
-        return superapp;
-    }
-
-    public void setSuperapp(String superapp) {
-        this.superapp = superapp;
-    }
-
     public String getEmail() {
         return email;
     }
@@ -53,11 +33,11 @@ public class NewUserBoundary{
     }
 
     public String getUsername() {
-        return username;
+        return userName;
     }
 
     public void setUsername(String username) {
-        this.username = username;
+        this.userName = username;
     }
 
     public String getAvatar() {
