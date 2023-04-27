@@ -9,6 +9,8 @@ import superapp.bounderies.UserBoundary;
 import superapp.bounderies.UserIdBoundary;
 import superapp.data.UserEntity;
 import superapp.data.UserRole;
+import superapp.exceptions.UserBadRequestException;
+import superapp.exceptions.UserNotFoundException;
 
 @Service
 public class UserServiceRdb implements UsersService {
@@ -22,6 +24,9 @@ public class UserServiceRdb implements UsersService {
 	@Override
 	@Transactional
 	public UserBoundary createUser(UserBoundary user) {
+		if (user.getUserName() == null || user.getUserName().isEmpty()
+				|| user.getAvatar() == null || user.getAvatar().isEmpty())
+			throw new UserBadRequestException("Need to input an username and an avatar for new user");
 		UserEntity entity = this.toEntity(user);
 		entity = this.userCrud.save(entity);
 		user = toBoundary(entity);
@@ -39,7 +44,7 @@ public class UserServiceRdb implements UsersService {
 	public UserBoundary update(String userSuperApp, String userEmail, UserBoundary update) {
 		UserEntity existing = this.userCrud.findById(userSuperApp+"/"+userEmail).orElseThrow(
 							  () -> new UserNotFoundException("could not find message for update by id: "
-							  + userEmail));
+							  + userSuperApp+"/"+userEmail));
 		if(update.getRole()!=null){
 			existing.setRole(this.toEntityAsEnum(update.getRole()));
 		}
@@ -61,14 +66,6 @@ public class UserServiceRdb implements UsersService {
 				.stream()
 				.map(this::toBoundary)
 				.toList();
-//		Iterable<UserEntity> iterable = this.userCrud.findAll();
-//		Iterator<UserEntity> iterator = iterable.iterator();
-//		List<UserBoundary> allUserList = new ArrayList<>();
-//		while(iterator.hasNext()){
-//			UserBoundary userBoundary = toBoundary(iterator.next());
-//			allUserList.add(userBoundary);
-//		}
-//		return allUserList;
 	}
 
 	@Override
@@ -104,11 +101,11 @@ public class UserServiceRdb implements UsersService {
 		if (boundary.getUserName() != null)
 			entity.setUserName(boundary.getUserName());
 		else
-			entity.setUserName("");
+			entity.setUserName("");// TODO: Check if we need to get rid of default values if at creation we will throw exception
 		if (boundary.getAvatar() != null)
 			entity.setAvatar(boundary.getAvatar());
 		else
-			entity.setAvatar("");
+			entity.setAvatar("");// TODO: Check if we need to get rid of default values if at creation we will throw exception
 		if (boundary.getRole() != null)
 			entity.setRole(toEntityAsEnum(boundary.getRole()));
 		else

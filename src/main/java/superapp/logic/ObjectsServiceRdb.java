@@ -12,6 +12,8 @@ import superapp.bounderies.ObjectBoundary;
 import superapp.bounderies.ObjectId;
 import superapp.bounderies.UserIdBoundary;
 import superapp.data.SuperappObjectsEntity;
+import superapp.exceptions.SuperappObjectBadRequestException;
+import superapp.exceptions.SuperappObjectNotFoundException;
 
 @Service
 public class ObjectsServiceRdb implements ObjectsService {
@@ -26,6 +28,9 @@ public class ObjectsServiceRdb implements ObjectsService {
     @Override
     @Transactional
     public ObjectBoundary CreateObject(ObjectBoundary object) {
+        if ( object.getAlias() == null || object.getAlias().isEmpty()
+                || object.getType() == null || object.getType().isEmpty() )
+            throw new SuperappObjectBadRequestException("Need to input the alias and type of object");
         object.setObjectId(new ObjectId("SuperPetApp", UUID.randomUUID().toString()));
         object.setCreationTimestamp(new Date());
         SuperappObjectsEntity entity = this.toEntity(object);

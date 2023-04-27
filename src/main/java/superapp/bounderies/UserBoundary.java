@@ -9,7 +9,7 @@ public class UserBoundary {
     public UserBoundary(NewUserBoundary newUserBoundary, String superapp) {
         this.userId = new UserIdBoundary(newUserBoundary.getEmail() , superapp);
         this.role = newUserBoundary.getRole();
-        this.userName = newUserBoundary.getUsername();
+        this.userName = newUserBoundary.getUserName();
         this.avatar = newUserBoundary.getAvatar();
     }
     public UserBoundary(UserIdBoundary userId, String role, String username, String avatar) {

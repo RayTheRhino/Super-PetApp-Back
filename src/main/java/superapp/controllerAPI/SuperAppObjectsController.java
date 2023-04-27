@@ -5,7 +5,7 @@ import superapp.bounderies.ObjectBoundary;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import superapp.logic.ObjectsService;
-import superapp.logic.SuperappObjectNotFoundException;
+import superapp.exceptions.SuperappObjectNotFoundException;
 
 import java.util.List;
 

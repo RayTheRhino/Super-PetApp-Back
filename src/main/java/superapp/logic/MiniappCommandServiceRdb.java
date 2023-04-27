@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import superapp.bounderies.*;
 import superapp.data.MiniappCommandEntity;
+import superapp.exceptions.MiniappCommandBadRequestException;
 
 @Service
 public class MiniappCommandServiceRdb implements MiniappCommandsService {
@@ -25,7 +26,7 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 
 	@Override
 	public Object invokeCommand(MiniAppCommandBoundary command) { // For now it will just convert to entity and insert to db. Later add real logic...
-
+		this.checkInputForNewCommand(command);
 		command.setCommandId(new CommandId("SuperPetApp",command.getCommandId().getMiniapp(),UUID.randomUUID().toString()));
 		MiniappCommandEntity entity = this.toEntity(command);
 		entity.setInvocationTimeStamp(new Date());
@@ -43,14 +44,6 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 				.stream()
 				.map(this::toBoundary)
 				.toList(); //TODO: maybe add a sorting by Time
-//		Iterable<MiniappCommandEntity> iterable = this.miniappCommandCrud.findAll();
-//		Iterator<MiniappCommandEntity> iterator = iterable.iterator();
-//		List<MiniAppCommandBoundary> rv = new ArrayList<>();
-//		while (iterator.hasNext()) {
-//			MiniAppCommandBoundary boundary = this.toBoundary(iterator.next());
-//			rv.add(boundary);
-//		}
-//		return rv;
 	}
 	@Override
 	@Transactional(readOnly = true) 
@@ -61,18 +54,7 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 				.filter(t->t.getCommandMiniApp().equals(miniappName))
 				.map(this::toBoundary)
 				.toList();  // TODO: maybe add a sorting by Time
-//		Iterable<MiniappCommandEntity> iterable = this.miniappCommandCrud.findAll();
-//		Iterator<MiniappCommandEntity> iterator = iterable.iterator();
-//		List<MiniAppCommandBoundary> rv = new ArrayList<>();
-//		while (iterator.hasNext()) {
-//			MiniappCommandEntity entity = iterator.next();
-//			if (entity.getCommandMiniApp().equals(miniappName))
-//			{
-//				MiniAppCommandBoundary boundary = this.toBoundary(entity);
-//				rv.add(boundary);
-//			}
-//		}
-//		return rv;
+
 	}
 
 	@Override
@@ -149,6 +131,24 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 			entity.setInvokedBySuperapp("SuperPetApp");
 		return entity;
 
+	}
+
+	private void checkInputForNewCommand(MiniAppCommandBoundary boundary){
+		if (boundary.getTargetObject() == null
+				|| boundary.getTargetObject().getObjectId() == null
+				|| boundary.getTargetObject().getObjectId().getInternalObjectId() == null
+				|| boundary.getTargetObject().getObjectId().getInternalObjectId().isEmpty()
+				|| boundary.getTargetObject().getObjectId().getSuperapp() == null
+				|| boundary.getTargetObject().getObjectId().getSuperapp().isEmpty())
+			throw new MiniappCommandBadRequestException("New command needs target object, with object id including internal id and superapp name");
+		if (boundary.getInvokedBy() == null
+			|| boundary.getInvokedBy().getUserId() == null
+			|| boundary.getInvokedBy().getUserId().getEmail() == null
+			|| boundary.getInvokedBy().getUserId().getEmail().isEmpty()
+			|| boundary.getInvokedBy().getUserId().getSuperapp() == null
+			|| boundary.getInvokedBy().getUserId().getSuperapp().isEmpty())
+			throw new MiniappCommandBadRequestException("New command needs invoked identification, with user id including email and superapp name");
+		// TODO: maybe need to add another exception if there is no user or object in the server
 	}
 
 }

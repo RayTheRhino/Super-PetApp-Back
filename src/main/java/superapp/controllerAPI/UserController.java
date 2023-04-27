@@ -6,7 +6,7 @@ import superapp.bounderies.UserBoundary;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import superapp.logic.UserNotFoundException;
+import superapp.exceptions.UserNotFoundException;
 import superapp.logic.UsersService;
 
 @RestController

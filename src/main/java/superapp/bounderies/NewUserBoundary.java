@@ -7,10 +7,10 @@ public class NewUserBoundary{
     private String userName;
     private String avatar;
 
-    public NewUserBoundary( String email, String role, String username, String avatar) {
+    public NewUserBoundary( String email, String role, String userName, String avatar) {
         this.email = email;
         this.role = role;
-        this.userName = username;
+        this.userName = userName;
         this.avatar = avatar;
     }
 
@@ -32,7 +32,7 @@ public class NewUserBoundary{
         this.role = role;
     }
 
-    public String getUsername() {
+    public String getUserName() {
         return userName;
     }
 
