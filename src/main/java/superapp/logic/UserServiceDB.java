@@ -13,7 +13,7 @@ import superapp.exceptions.UserBadRequestException;
 import superapp.exceptions.UserNotFoundException;
 
 @Service
-public class UserServiceRdb implements UsersService {
+public class UserServiceDB implements UsersService {
 	private UserCrud userCrud;
 
 	@Autowired

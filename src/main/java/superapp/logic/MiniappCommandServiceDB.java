@@ -1,8 +1,6 @@
 package superapp.logic;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,7 +13,7 @@ import superapp.data.MiniappCommandEntity;
 import superapp.exceptions.MiniappCommandBadRequestException;
 
 @Service
-public class MiniappCommandServiceRdb implements MiniappCommandsService {
+public class MiniappCommandServiceDB implements MiniappCommandsService {
 	private MiniappCommandCrud miniappCommandCrud;
 	
 	

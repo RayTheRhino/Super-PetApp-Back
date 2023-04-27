@@ -16,7 +16,7 @@ import superapp.exceptions.SuperappObjectBadRequestException;
 import superapp.exceptions.SuperappObjectNotFoundException;
 
 @Service
-public class ObjectsServiceRdb implements ObjectsService {
+public class ObjectsServiceDB implements ObjectsService {
     private ObjectCrud objectCrud;
 
     @Autowired
