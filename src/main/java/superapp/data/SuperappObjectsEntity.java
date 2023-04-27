@@ -4,34 +4,35 @@ import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-import superapp.logic.SuperappConverterOfMapToJson;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name="SuperappObjects")
+//import jakarta.persistence.Convert;
+//import jakarta.persistence.Entity;
+//import jakarta.persistence.Id;
+//import jakarta.persistence.Lob;
+//import jakarta.persistence.Table;
+//import jakarta.persistence.Temporal;
+//import jakarta.persistence.TemporalType;
+//import superapp.logic.SuperappConverterOfMapToJson;
+
+//@Entity
+//@Table(name="SuperappObjects")
+@Document(collection = "SuperappObjects")
 public class SuperappObjectsEntity {
-//    @Id
-//	private String internalObjectId; //TODO: change id (Changed!)
-//	private String superapp;
 	@Id
 	private String objectId; // objectId = superapp+internalObjectId
     private String type;
     private String alias;
     private boolean active;
-    @Temporal(TemporalType.TIMESTAMP)
+//    @Temporal(TemporalType.TIMESTAMP)
     private Date creationTimestamp;
     private double lat;
     private double lng;
     private String byEmail;
     private String bySuperapp;
-	@Convert(converter = SuperappConverterOfMapToJson.class)
-	@Lob
+//	@Convert(converter = SuperappConverterOfMapToJson.class)
+//	@Lob
     private Map<String, Object> objectDetails;
 	
 	public SuperappObjectsEntity() {	

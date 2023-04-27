@@ -56,14 +56,19 @@ public class UserServiceRdb implements UsersService {
 	@Override
 	@Transactional
 	public List<UserBoundary> getAllUsers() {
-		Iterable<UserEntity> iterable = this.userCrud.findAll();
-		Iterator<UserEntity> iterator = iterable.iterator();
-		List<UserBoundary> allUserList = new ArrayList<>();
-		while(iterator.hasNext()){
-			UserBoundary userBoundary = toBoundary(iterator.next());
-			allUserList.add(userBoundary);
-		}
-		return allUserList;
+		List<UserEntity> list = this.userCrud.findAll();
+		return list
+				.stream()
+				.map(this::toBoundary)
+				.toList();
+//		Iterable<UserEntity> iterable = this.userCrud.findAll();
+//		Iterator<UserEntity> iterator = iterable.iterator();
+//		List<UserBoundary> allUserList = new ArrayList<>();
+//		while(iterator.hasNext()){
+//			UserBoundary userBoundary = toBoundary(iterator.next());
+//			allUserList.add(userBoundary);
+//		}
+//		return allUserList;
 	}
 
 	@Override
@@ -92,7 +97,8 @@ public class UserServiceRdb implements UsersService {
 	private UserEntity toEntity(UserBoundary boundary) {
 
 		UserEntity entity = new UserEntity();
-
+		if (boundary.getUserId().getEmail() == null)
+			boundary.getUserId().setEmail("example@email.com");
 		entity.setUserId(boundary.getUserId().getSuperapp()+"/"+boundary.getUserId().getEmail());
 
 		if (boundary.getUserName() != null)

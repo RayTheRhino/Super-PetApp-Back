@@ -32,48 +32,47 @@ public class MiniappCommandServiceRdb implements MiniappCommandsService {
 		miniappCommandCrud.save(entity);
 		command = this.toBoundary(entity);
 		return command;
-//		try{
-//			MiniappCommandEntity entity = this.toEntity(command);
-//			if(entity!=null){ //TODO: change this, its always true
-//				entity.setInvocationTimeStamp(new Date());
-//				miniappCommandCrud.save(entity);
-//				command = this.toBoundary(entity);
-//				//For now just return the same object from request. Later change this to return the relevant object based on the request and logic
-//				return command;
-//			}
-//		}catch (Exception ex){
-//			System.out.println("Failed to invoke command: " + ex.getMessage());
-//		}
 
 	}
 
 	@Override
 	@Transactional(readOnly = true)
 	public List<MiniAppCommandBoundary> getAllCommands() {
-		Iterable<MiniappCommandEntity> iterable = this.miniappCommandCrud.findAll();
-		Iterator<MiniappCommandEntity> iterator = iterable.iterator();
-		List<MiniAppCommandBoundary> rv = new ArrayList<>();
-		while (iterator.hasNext()) {
-			MiniAppCommandBoundary boundary = this.toBoundary(iterator.next()); 
-			rv.add(boundary);
-		}
-		return rv;
+		List<MiniappCommandEntity> list = this.miniappCommandCrud.findAll();
+		return list
+				.stream()
+				.map(this::toBoundary)
+				.toList(); //TODO: maybe add a sorting by Time
+//		Iterable<MiniappCommandEntity> iterable = this.miniappCommandCrud.findAll();
+//		Iterator<MiniappCommandEntity> iterator = iterable.iterator();
+//		List<MiniAppCommandBoundary> rv = new ArrayList<>();
+//		while (iterator.hasNext()) {
+//			MiniAppCommandBoundary boundary = this.toBoundary(iterator.next());
+//			rv.add(boundary);
+//		}
+//		return rv;
 	}
 	@Override
 	@Transactional(readOnly = true) 
 	public List<MiniAppCommandBoundary> getAllMiniAppCommands(String miniappName) {
-		Iterable<MiniappCommandEntity> iterable = this.miniappCommandCrud.findAll();
-		Iterator<MiniappCommandEntity> iterator = iterable.iterator();
-		List<MiniAppCommandBoundary> rv = new ArrayList<>();
-		while (iterator.hasNext()) {
-			MiniappCommandEntity entity = iterator.next();
-			if (entity.getCommandMiniApp().equals(miniappName))
-			{	
-				MiniAppCommandBoundary boundary = this.toBoundary(entity); 
-				rv.add(boundary);
-			}
-		}
-		return rv;
+		List<MiniappCommandEntity> list = this.miniappCommandCrud.findAll();
+		return list
+				.stream()
+				.filter(t->t.getCommandMiniApp().equals(miniappName))
+				.map(this::toBoundary)
+				.toList();  // TODO: maybe add a sorting by Time
+//		Iterable<MiniappCommandEntity> iterable = this.miniappCommandCrud.findAll();
+//		Iterator<MiniappCommandEntity> iterator = iterable.iterator();
+//		List<MiniAppCommandBoundary> rv = new ArrayList<>();
+//		while (iterator.hasNext()) {
+//			MiniappCommandEntity entity = iterator.next();
+//			if (entity.getCommandMiniApp().equals(miniappName))
+//			{
+//				MiniAppCommandBoundary boundary = this.toBoundary(entity);
+//				rv.add(boundary);
+//			}
+//		}
+//		return rv;
 	}
 
 	@Override

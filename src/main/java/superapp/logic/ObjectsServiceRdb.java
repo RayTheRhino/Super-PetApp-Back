@@ -72,14 +72,19 @@ public class ObjectsServiceRdb implements ObjectsService {
     @Override
     @Transactional(readOnly = true)
     public List<ObjectBoundary> getAllObjects() {
-        Iterable<SuperappObjectsEntity> iterable = this.objectCrud.findAll();
-        Iterator<SuperappObjectsEntity> iterator = iterable.iterator();
-        List<ObjectBoundary> allObjList = new ArrayList<>();
-        while (iterator.hasNext()) {
-            ObjectBoundary boundary = toBoundary(iterator.next());
-            allObjList.add(boundary);
-        }
-        return allObjList;
+        List<SuperappObjectsEntity> list = this.objectCrud.findAll();
+        return list
+                .stream()
+                .map(this::toBoundary)
+                .toList();
+//      Iterable<SuperappObjectsEntity> iterable = this.objectCrud.findAll();
+//      Iterator<SuperappObjectsEntity> iterator = iterable.iterator();
+//      List<ObjectBoundary> allObjList = new ArrayList<>();
+//      while (iterator.hasNext()) {
+//          ObjectBoundary boundary = toBoundary(iterator.next());
+//          allObjList.add(boundary);
+//      }
+//      return allObjList;
     }
 
     @Override

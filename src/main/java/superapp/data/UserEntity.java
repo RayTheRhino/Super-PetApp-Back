@@ -1,21 +1,22 @@
 package superapp.data;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name="UserEntity")
+//import jakarta.persistence.Entity;
+//import jakarta.persistence.EnumType;
+//import jakarta.persistence.Enumerated;
+//import jakarta.persistence.Id;
+//import jakarta.persistence.Table;
+
+//@Entity
+//@Table(name="UserEntity")
+@Document(collection = "UserEntity")
 public class UserEntity {
-//	@Id private String email; //TODO: change id (Changed!)
-//	private String superapp;
 	@Id
 	private String userId; // userId = superapp + email
 	private String userName;
 	private String avatar;
-	@Enumerated(EnumType.STRING)
 	private UserRole role;
 	
 	

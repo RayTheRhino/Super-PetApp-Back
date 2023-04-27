@@ -4,31 +4,32 @@ import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-import superapp.logic.SuperappConverterOfMapToJson;
-@Entity
-@Table(name="MiniappCommands")
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+//import jakarta.persistence.Convert;
+//import jakarta.persistence.Entity;
+//import jakarta.persistence.Id;
+//import jakarta.persistence.Lob;
+//import jakarta.persistence.Table;
+//import jakarta.persistence.Temporal;
+//import jakarta.persistence.TemporalType;
+//import superapp.logic.SuperappConverterOfMapToJson;
+//
+//@Entity
+//@Table(name="MiniappCommands")
+@Document(collection = "MiniappCommands")
 public class MiniappCommandEntity {
-//    @Id
-//	  private String commandId; //TODO: change id (Changed!)
-//    private String commandSuperapp;
-//    private String commandMiniapp;
 	@Id
 	private String commandId; //  commandId = CommandId.superapp
 							 //   + CommandId.miniapp + CommandId.internalCommandId
 	private String command;
     private String targetSuperapp;
     private String targetObjectId;
-    @Temporal(TemporalType.TIMESTAMP)
+//    @Temporal(TemporalType.TIMESTAMP)
     private Date invocationTimeStamp;
-	@Convert(converter = SuperappConverterOfMapToJson.class)
-	@Lob
+//	@Convert(converter = SuperappConverterOfMapToJson.class)
+//	@Lob
     private Map<String,Object> commandAttribute;
 	private String invokedByEmail;
 	private String invokedBySuperapp;
