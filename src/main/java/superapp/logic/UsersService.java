@@ -11,7 +11,7 @@ public interface UsersService {
 	
 	public Optional<UserBoundary> login(String userSuperApp, String userEmail);
 	
-	public UserBoundary update(String userSuperApp, String userEmail, UserBoundary update) throws Exception;
+	public UserBoundary update(String userSuperApp, String userEmail, UserBoundary update);
 	
 	public List<UserBoundary> getAllUsers();
 	

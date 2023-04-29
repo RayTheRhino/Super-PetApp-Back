@@ -18,7 +18,7 @@ public class ObjectsServiceRdb implements ObjectsService {
     private ObjectCrud objectCrud;
 
     @Autowired
-    public void setMiniappCommandCrud(ObjectCrud objectCrud) {
+    public void setObjectCrudCrud(ObjectCrud objectCrud) {
         this.objectCrud = objectCrud;
     }
 
@@ -26,7 +26,7 @@ public class ObjectsServiceRdb implements ObjectsService {
     @Override
     @Transactional
     public ObjectBoundary CreateObject(ObjectBoundary object) {
-        object.setObjectId(new ObjectId("Super Pet App", UUID.randomUUID().toString()));
+        object.setObjectId(new ObjectId("SuperPetApp", UUID.randomUUID().toString()));
         object.setCreationTimestamp(new Date());
         SuperappObjectsEntity entity = this.toEntity(object);
         objectCrud.save(entity);
@@ -36,42 +36,28 @@ public class ObjectsServiceRdb implements ObjectsService {
 
     @Override
     @Transactional
-    public ObjectBoundary updateObject(String objectSuperApp, String internalObjectId, ObjectBoundary update) throws Exception {
+    public ObjectBoundary updateObject(String objectSuperApp, String internalObjectId, ObjectBoundary update) {
 
-            SuperappObjectsEntity existing = this.objectCrud.findById(internalObjectId).orElseThrow(() -> new Exception("could not find message for update by id: " + internalObjectId)); //TODO: Change to custom exceptions!
-            if (update.getObjectId() != null) {
-                if (update.getObjectId().getInternalObjectId() != null) {
-                    existing.setInternalObjectId(update.getObjectId().getInternalObjectId());
-                }
-                if (update.getObjectId().getSuperapp() != null) {
-                    existing.setSuperapp(update.getObjectId().getSuperapp());
-                }
-            }
+            SuperappObjectsEntity existing = this.objectCrud.findById(internalObjectId).orElseThrow(
+            								() -> new SuperappObjectNotFoundException(
+            										"could not find message for update by id: "
+            										+ internalObjectId));
             if (update.getType() != null) {
                 existing.setType(update.getType());
             }
             if (update.getAlias() != null) {
                 existing.setAlias(update.getAlias());
             }
-            existing.setActive(update.getActive());
+            if (update.getActive() != null)
+                existing.setActive(update.getActive());
 
-            if (update.getCreationTimestamp() != null) {
-                existing.setCreationTimestamp(update.getCreationTimestamp());
-            }
             if (update.getLocation() != null) {
                 existing.setLat(update.getLocation().getLat());
-                existing.setLat(update.getLocation().getLng());
+                existing.setLng(update.getLocation().getLng());
             }
-            if (update.getCreatedBy() != null) {
-                if (update.getCreatedBy().getUserId() != null) {
-                    if (update.getCreatedBy().getUserId().getEmail() != null) {
-                        existing.setByEmail(update.getCreatedBy().getUserId().getEmail());
-                    }
-                    if (update.getCreatedBy().getUserId().getSuperapp() != null) {
-                        existing.setBySuperapp(update.getCreatedBy().getUserId().getSuperapp());
-                    }
-                }
-            }
+            if (!update.getObjectDetails().isEmpty())
+                existing.setObjectDetails(update.getObjectDetails());
+
             existing = objectCrud.save(existing);
             return this.toBoundary(existing);
     }
@@ -120,19 +106,48 @@ public class ObjectsServiceRdb implements ObjectsService {
     private SuperappObjectsEntity toEntity(ObjectBoundary boundary) {
         SuperappObjectsEntity entity = new SuperappObjectsEntity();
 
-        // TODO:  throw exception
+
         entity.setInternalObjectId(boundary.getObjectId().getInternalObjectId());
         entity.setSuperapp(boundary.getObjectId().getSuperapp());
-        entity.setType(boundary.getType());
-        entity.setAlias(boundary.getAlias());
-        entity.setActive(boundary.getActive());
-        entity.setCreationTimestamp(boundary.getCreationTimestamp());
-        entity.setLat(boundary.getLocation().getLat());
-        entity.setLng(boundary.getLocation().getLng());
-        entity.setByEmail(boundary.getCreatedBy().getUserId().getEmail());
-        entity.setBySuperapp(boundary.getCreatedBy().getUserId().getSuperapp());
-        entity.setObjectDetails(boundary.getObjectDetails());
-
+        if (boundary.getType() != null)
+        	entity.setType(boundary.getType());
+        else
+        	entity.setType("");
+        if (boundary.getAlias() != null)
+        	entity.setAlias(boundary.getAlias());
+        else
+        	entity.setAlias("");
+        if (boundary.getActive() != null)
+        	entity.setActive(boundary.getActive());
+        else
+        	entity.setActive(false);
+        if (boundary.getCreationTimestamp() != null)
+        	entity.setCreationTimestamp(boundary.getCreationTimestamp());
+        else
+        	entity.setCreationTimestamp(new Date());
+        if (boundary.getLocation() != null && boundary.getLocation().getLat() != null)
+        	entity.setLat(boundary.getLocation().getLat());
+        else
+        	entity.setLat(0.0);
+        if (boundary.getLocation() != null && boundary.getLocation().getLng() != null)
+        	entity.setLng(boundary.getLocation().getLng());
+        else
+        	entity.setLng(0.0);
+        if (boundary.getCreatedBy() != null 
+        		&& boundary.getCreatedBy().getUserId() != null
+        		&& boundary.getCreatedBy().getUserId().getEmail() != null)
+        	entity.setByEmail(boundary.getCreatedBy().getUserId().getEmail());
+        else
+        	entity.setByEmail("");
+        if (boundary.getCreatedBy() != null 
+        	&& boundary.getCreatedBy().getUserId() != null
+        	&& boundary.getCreatedBy().getUserId().getSuperapp() != null)
+        	entity.setBySuperapp(boundary.getCreatedBy().getUserId().getSuperapp());
+        else
+        	entity.setBySuperapp("SuperPetApp");
+        if (boundary.getObjectDetails() != null)
+        	entity.setObjectDetails(boundary.getObjectDetails());
+        // else, do nothing , the constructor already made a new TreeMap 
         return entity;
 
     }

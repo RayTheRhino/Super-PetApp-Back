@@ -1,8 +1,8 @@
 package superapp.controllerAPI;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import superapp.bounderies.CommandId;
 import superapp.bounderies.MiniAppCommandBoundary;
-import superapp.bounderies.ObjectId;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import superapp.logic.MiniappCommandsService;
+
+import java.util.UUID;
 
 
 @RestController
@@ -28,6 +30,8 @@ public class MiniAppCommandController {
     public Object invokeMiniApp (
             @PathVariable("miniAppName") String miniAppName,
             @RequestBody MiniAppCommandBoundary miniAppCommandBoundary) {
+
+        miniAppCommandBoundary.setCommandId(new CommandId("SuperPetApp", miniAppName, UUID.randomUUID().toString())); // TODO: change into logic package
         return miniappCommandsService.invokeCommand(miniAppCommandBoundary);
     }
 

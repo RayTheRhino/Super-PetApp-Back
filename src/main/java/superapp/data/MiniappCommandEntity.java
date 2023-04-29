@@ -11,15 +11,12 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import superapp.bounderies.CommandId;
-import superapp.bounderies.InvokedBy;
-import superapp.bounderies.TargetObject;
 import superapp.logic.SuperappConverterOfMapToJson;
 @Entity
-@Table(name="MINIAPPCOMMANDS")
+@Table(name="MiniappCommands")
 public class MiniappCommandEntity {
     @Id
-	private String commandId;
+	private String commandId; //TODO: change id
     private String commandSuperapp;
     private String commandMiniapp;
     private String command;

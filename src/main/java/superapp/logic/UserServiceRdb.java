@@ -5,7 +5,8 @@ import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import superapp.bounderies.*;
+import superapp.bounderies.UserBoundary;
+import superapp.bounderies.UserIdBoundary;
 import superapp.data.UserEntity;
 import superapp.data.UserRole;
 
@@ -21,10 +22,9 @@ public class UserServiceRdb implements UsersService {
 	@Override
 	@Transactional
 	public UserBoundary createUser(UserBoundary user) {
-		user.setUserId(new UserIdBoundary(user.getUserId().getEmail(), "Super Pet App"));
 		UserEntity entity = this.toEntity(user);
 		entity = this.userCrud.save(entity);
-
+		user = toBoundary(entity);
 		return user;
 	}
 
@@ -36,24 +36,18 @@ public class UserServiceRdb implements UsersService {
 
 	@Override
 	@Transactional
-	public UserBoundary update(String userSuperApp, String userEmail, UserBoundary update) throws Exception {
-		UserEntity existing = this.userCrud.findById(userEmail).orElseThrow(() -> new Exception("could not find message for update by id: " + userEmail)); //TODO: Change to custom exceptions!
-		if(update.getUserId()!=null){
-			if(update.getRole()!=null){
-				existing.setRole(this.toEntityAsEnum(update.getRole()));
-			}
-			if(update.getAvatar()!=null){
-				existing.setAvatar(update.getAvatar());
-			}
-			if(update.getUsername()!=null){
-				update.setUsername(update.getUsername());
-			}
+	public UserBoundary update(String userSuperApp, String userEmail, UserBoundary update) {
+		UserEntity existing = this.userCrud.findById(userEmail).orElseThrow(
+							  () -> new UserNotFoundException("could not find message for update by id: "
+							  + userEmail));
+		if(update.getRole()!=null){
+			existing.setRole(this.toEntityAsEnum(update.getRole()));
 		}
-		if(userSuperApp!=null){
-			existing.setSuperapp(update.getUserId().getSuperapp());
+		if(update.getAvatar()!=null){
+			existing.setAvatar(update.getAvatar());
 		}
-		if(userEmail!=null){
-			existing.setEmail(update.getUserId().getEmail());
+		if(update.getUserName()!=null){
+			existing.setUserName(update.getUserName());
 		}
 		existing = userCrud.save(existing);
 		return this.toBoundary(existing);
@@ -90,18 +84,37 @@ public class UserServiceRdb implements UsersService {
 		boundary.setUserId(new UserIdBoundary(entity.getEmail(),entity.getSuperapp()));
 		boundary.setRole(entity.getRole().name());
 		boundary.setAvatar(entity.getAvatar());
-		boundary.setUsername(entity.getUserName());
+		boundary.setUserName(entity.getUserName());
 		return boundary;
 
 	}
 
 	private UserEntity toEntity(UserBoundary boundary) {
-		//TODO:  throw exception
+
 		UserEntity entity = new UserEntity();
-		entity.setUserName(boundary.getUsername());
-		entity.setAvatar(boundary.getAvatar());
-		entity.setRole(toEntityAsEnum(boundary.getRole()));
-		entity.setEmail(boundary.getUserId().getEmail());
+		
+		if (boundary.getUserName() != null)
+			entity.setUserName(boundary.getUserName());
+		else
+			entity.setUserName("");
+		if (boundary.getAvatar() != null)
+			entity.setAvatar(boundary.getAvatar());
+		else
+			entity.setAvatar("");
+		if (boundary.getRole() != null)
+			entity.setRole(toEntityAsEnum(boundary.getRole()));
+		else
+			entity.setRole(UserRole.MINIAPP_USER);
+		if (boundary.getUserId() != null 
+				&& boundary.getUserId().getSuperapp() != null)
+			entity.setSuperapp(boundary.getUserId().getSuperapp());
+		else
+			entity.setSuperapp("SuperPetApp");
+		if (boundary.getUserId() != null 
+				&& boundary.getUserId().getEmail() != null)
+			entity.setEmail(boundary.getUserId().getEmail());
+		else
+			entity.setEmail("exemple@email.com");
 		return entity;
 
 	}

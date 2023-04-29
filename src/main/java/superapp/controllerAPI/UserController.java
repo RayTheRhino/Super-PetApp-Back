@@ -5,9 +5,9 @@ import superapp.bounderies.NewUserBoundary;
 import superapp.bounderies.UserBoundary;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import superapp.logic.UsersService;
 
-import java.util.Optional;
+import superapp.logic.UserNotFoundException;
+import superapp.logic.UsersService;
 
 @RestController
 public class UserController {
@@ -31,10 +31,11 @@ public class UserController {
             path = {"/superapp/users/login/{superapp}/{email}"},
             method = {RequestMethod.GET},
             produces = {MediaType.APPLICATION_JSON_VALUE})
-    public Optional<UserBoundary> loginAndRetriveUserDetails (
+    public UserBoundary loginAndRetriveUserDetails (
             @PathVariable("superapp") String superapp,
             @PathVariable("email") String email){
-        return  usersService.login(superapp,email);
+        return  usersService.login(superapp,email).orElseThrow(
+				() -> new UserNotFoundException("Couldn't find user by this email: "+email));
     }
 
     

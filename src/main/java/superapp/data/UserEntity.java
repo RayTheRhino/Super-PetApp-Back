@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name="UserEntity")
 public class UserEntity {
-	@Id private String email;
+	@Id private String email; //TODO: change id
 	private String superapp;
 	private String userName;
 	private String avatar;
