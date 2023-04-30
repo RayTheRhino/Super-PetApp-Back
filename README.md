@@ -2,7 +2,7 @@
 
 ### What is this app about? ###
 
-This repository is for the backend of this app.
+This repository is for the frontent of this app.
 The app is a social pet app for animals.
 will contain: 
 * Login & register page.
@@ -12,17 +12,20 @@ will contain:
 * Vet best of recommandations: will show vets recommandtaions for food and supplments.
  *Adopt me: will show you pets that are avilable for addaption.
 
+### Frontend Stack ###
+* JavaScript 
+* React- UseState and Hooks
+* Css
+* Scss
+
+
 ### Backend Stack ###
 
 * Java Spring
 * Tomcat
 * RestAPI
 * MongoDB
-* GoogleAPI
+* OpenStreetMapAPI
 * OpenAPI
 
-### Frontend Stack ###
-* JavaScript 
-* React
-* Css
-* Scss
+
