@@ -7,17 +7,6 @@ import java.util.TreeMap;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-//import jakarta.persistence.Convert;
-//import jakarta.persistence.Entity;
-//import jakarta.persistence.Id;
-//import jakarta.persistence.Lob;
-//import jakarta.persistence.Table;
-//import jakarta.persistence.Temporal;
-//import jakarta.persistence.TemporalType;
-//import superapp.logic.SuperappConverterOfMapToJson;
-
-//@Entity
-//@Table(name="SuperappObjects")
 @Document(collection = "SuperappObjects")
 public class SuperappObjectsEntity {
 	@Id
@@ -25,14 +14,11 @@ public class SuperappObjectsEntity {
     private String type;
     private String alias;
     private boolean active;
-//    @Temporal(TemporalType.TIMESTAMP)
     private Date creationTimestamp;
     private double lat;
     private double lng;
     private String byEmail;
     private String bySuperapp;
-//	@Convert(converter = SuperappConverterOfMapToJson.class)
-//	@Lob
     private Map<String, Object> objectDetails;
 	
 	public SuperappObjectsEntity() {	

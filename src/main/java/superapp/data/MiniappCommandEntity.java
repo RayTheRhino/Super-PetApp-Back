@@ -7,17 +7,6 @@ import java.util.TreeMap;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-//import jakarta.persistence.Convert;
-//import jakarta.persistence.Entity;
-//import jakarta.persistence.Id;
-//import jakarta.persistence.Lob;
-//import jakarta.persistence.Table;
-//import jakarta.persistence.Temporal;
-//import jakarta.persistence.TemporalType;
-//import superapp.logic.SuperappConverterOfMapToJson;
-//
-//@Entity
-//@Table(name="MiniappCommands")
 @Document(collection = "MiniappCommands")
 public class MiniappCommandEntity {
 	@Id
