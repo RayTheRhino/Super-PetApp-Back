@@ -1,29 +1,31 @@
-# README #
+# PETAPP #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+### What is this app about? ###
 
-### What is this repository for? ###
+This repository is for the frontent of this app.
+The app is a social pet app for animals.
+will contain: 
+* Login & register page.
+* Connect us page.
+* Chat for pet owner and vets for Q&A.
+* Find me a park : using google api, will show you pets park around you, rates and reviwes.
+* Vet best of recommandations: will show vets recommandtaions for food and supplments.
+ *Adopt me: will show you pets that are avilable for addaption.
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+### Frontend Stack ###
+* JavaScript 
+* React- UseState and Hooks
+* Css
+* Scss
 
-### How do I get set up? ###
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+### Backend Stack ###
 
-### Contribution guidelines ###
+* Java Spring
+* Tomcat
+* RestAPI
+* MongoDB
+* OpenStreetMapAPI
+* OpenAPI
 
-* Writing tests
-* Code review
-* Other guidelines
 
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
