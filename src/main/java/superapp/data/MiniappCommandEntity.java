@@ -4,31 +4,28 @@ import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-import superapp.logic.SuperappConverterOfMapToJson;
-@Entity
-@Table(name="MiniappCommands")
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document(collection = "MiniappCommands")
 public class MiniappCommandEntity {
-    @Id
-	private String commandId; //TODO: change id
-    private String commandSuperapp;
-    private String commandMiniapp;
-    private String command;
+	@Id
+	private String commandId; //  commandId = CommandId.superapp
+							 //   + CommandId.miniapp + CommandId.internalCommandId
+	private String command;
     private String targetSuperapp;
     private String targetObjectId;
-    @Temporal(TemporalType.TIMESTAMP)
+//    @Temporal(TemporalType.TIMESTAMP)
     private Date invocationTimeStamp;
-	@Convert(converter = SuperappConverterOfMapToJson.class)
-	@Lob
+//	@Convert(converter = SuperappConverterOfMapToJson.class)
+//	@Lob
     private Map<String,Object> commandAttribute;
 	private String invokedByEmail;
 	private String invokedBySuperapp;
+
+	public MiniappCommandEntity() {
+		this.commandAttribute = new TreeMap<>();
+	}
 
 	public String getInvokedByEmail() {
 		return invokedByEmail;
@@ -46,9 +43,6 @@ public class MiniappCommandEntity {
 		this.invokedBySuperapp = invokedBySuperapp;
 	}
 
-	public MiniappCommandEntity() {
-		this.commandAttribute = new TreeMap<>();
-	}
 
 	public String getCommandId() {
 		return commandId;
@@ -58,21 +52,9 @@ public class MiniappCommandEntity {
 		this.commandId = commandId;
 	}
 
-	public String getCommandSuperapp() {
-		return commandSuperapp;
-	}
-
-	public void setCommandSuperapp(String commandSuperapp) {
-		this.commandSuperapp = commandSuperapp;
-	}
-
-	public String getCommandMiniapp() {
-		return commandMiniapp;
-	}
-
-	public void setCommandMiniapp(String commandMiniapp) {
-		this.commandMiniapp = commandMiniapp;
-	}
+	public String getCommandSuperApp(){ return commandId.split("/")[0];}
+	public String getCommandMiniApp(){ return commandId.split("/")[1];}
+	public String getCommandInternalId(){ return commandId.split("/")[2];}
 
 	public String getCommand() {
 		return command;

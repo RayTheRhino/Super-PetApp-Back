@@ -31,7 +31,7 @@ public class MiniAppCommandController {
             @PathVariable("miniAppName") String miniAppName,
             @RequestBody MiniAppCommandBoundary miniAppCommandBoundary) {
 
-        miniAppCommandBoundary.setCommandId(new CommandId("SuperPetApp", miniAppName, UUID.randomUUID().toString())); // TODO: change into logic package
+        miniAppCommandBoundary.setCommandId(new CommandId("SuperPetApp", miniAppName, "")); // TODO: change into logic package (semi Changed!)
         return miniappCommandsService.invokeCommand(miniAppCommandBoundary);
     }
 

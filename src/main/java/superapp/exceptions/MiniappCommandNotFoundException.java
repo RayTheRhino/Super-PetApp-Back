@@ -1,4 +1,4 @@
-package superapp.logic;
+package superapp.exceptions;
 
 
 import org.springframework.http.HttpStatus;

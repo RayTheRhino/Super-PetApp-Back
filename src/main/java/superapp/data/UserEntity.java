@@ -1,19 +1,22 @@
 package superapp.data;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name="UserEntity")
+//import jakarta.persistence.Entity;
+//import jakarta.persistence.EnumType;
+//import jakarta.persistence.Enumerated;
+//import jakarta.persistence.Id;
+//import jakarta.persistence.Table;
+
+//@Entity
+//@Table(name="UserEntity")
+@Document(collection = "UserEntity")
 public class UserEntity {
-	@Id private String email; //TODO: change id
-	private String superapp;
+	@Id
+	private String userId; // userId = superapp + email
 	private String userName;
 	private String avatar;
-	@Enumerated(EnumType.STRING)
 	private UserRole role;
 	
 	
@@ -28,22 +31,17 @@ public class UserEntity {
 		this.avatar = avatar;
 	}
 
-	public String getEmail() {
-		return email;
+	public String getUserId() {
+		return userId;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 
-	public String getSuperapp() {
-		return superapp;
-	}
+	public String getSuperApp() { return userId.split("/")[0];}
 
-	public void setSuperapp(String superapp) {
-		this.superapp = superapp;
-	}
-
+	public String getEmail() { return userId.split("/")[1];}
 	public String getUserName() {
 		return userName;
 	}
@@ -63,8 +61,7 @@ public class UserEntity {
 	@Override
 	public String toString() {
 		return "UserEntity{" +
-				"email='" + email + '\'' +
-				", superapp='" + superapp + '\'' +
+				"userId='" + userId + '\'' +
 				", userName='" + userName + '\'' +
 				", avatar='" + avatar + '\'' +
 				", role=" + role +

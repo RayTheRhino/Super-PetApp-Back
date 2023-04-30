@@ -4,54 +4,38 @@ import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-import superapp.logic.SuperappConverterOfMapToJson;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name="SuperappObjects")
+@Document(collection = "SuperappObjects")
 public class SuperappObjectsEntity {
-    @Id
-	private String internalObjectId; //TODO: change id
-	private String superapp;
+	@Id
+	private String objectId; // objectId = superapp+internalObjectId
     private String type;
     private String alias;
     private boolean active;
-    @Temporal(TemporalType.TIMESTAMP)
     private Date creationTimestamp;
     private double lat;
     private double lng;
     private String byEmail;
     private String bySuperapp;
-	@Convert(converter = SuperappConverterOfMapToJson.class)
-	@Lob
     private Map<String, Object> objectDetails;
 	
 	public SuperappObjectsEntity() {	
 		this.objectDetails = new TreeMap<>();
 	}
 
-	public String getInternalObjectId() {
-		return internalObjectId;
+	public String getObjectId() {
+		return objectId;
 	}
 
-	public void setInternalObjectId(String internalObjectId) {
-		this.internalObjectId = internalObjectId;
+	public void setObjectId(String objectId) {
+		this.objectId = objectId;
 	}
 
-	public String getSuperapp() {
-		return superapp;
-	}
+	public String getObjectSuperapp() { return objectId.split("/")[0];}
 
-	public void setSuperapp(String superapp) {
-		this.superapp = superapp;
-	}
-
+	public String getObjectInternalId() { return objectId.split("/")[1];}
 	public String getType() {
 		return type;
 	}
@@ -126,7 +110,7 @@ public class SuperappObjectsEntity {
 
 	@Override
 	public String toString() {
-		return "SuperappObjectsEntity [internalObjectId=" + internalObjectId + ", superapp=" + superapp + ", type="
+		return "SuperappObjectsEntity [objectId=" + objectId + ", type="
 				+ type + ", alias=" + alias + ", active=" + active + ", creationTimestamp=" + creationTimestamp
 				+ ", lat=" + lat + ", lng=" + lng + ", createdBy=" + byEmail + bySuperapp + ", objectDetails=" + objectDetails
 				+ "]";
