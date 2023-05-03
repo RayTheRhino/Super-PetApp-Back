@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import superapp.bounderies.*;
 import superapp.data.MiniappCommandEntity;
-import superapp.exceptions.MiniappCommandBadRequestException;
+import superapp.dataAccess.MiniappCommandCrud;
 
 @Service
 public class MiniappCommandServiceDB implements MiniappCommandsService {
@@ -79,7 +79,7 @@ public class MiniappCommandServiceDB implements MiniappCommandsService {
 		
 	}
 	
-	private MiniappCommandEntity toEntity(MiniAppCommandBoundary boundary) {
+	private MiniappCommandEntity toEntity(MiniAppCommandBoundary boundary) { //TODO: clean unnecessary if and else, for values that cant be default
 		MiniappCommandEntity entity = new MiniappCommandEntity();
 
 		if (boundary.getCommandId() != null) {

@@ -4,8 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import superapp.bounderies.ObjectBoundary;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import superapp.bounderies.ObjectId;
 import superapp.logic.ObjectsService;
-import superapp.exceptions.SuperappObjectNotFoundException;
+import superapp.logic.SuperappObjectNotFoundException;
 
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class SuperAppObjectsController {
         public void updateObject ( @PathVariable("superapp") String superapp,
                                    @PathVariable("InternalObjectId") String InternalObjectId,
                                    @RequestBody ObjectBoundary input) {
-                objectsService.updateObject(superapp,InternalObjectId,input);
+                objectsService.updateObject(superapp,InternalObjectId,input); // TODO: need to ask how to update the children
         }
 
         @RequestMapping(
@@ -58,6 +59,5 @@ public class SuperAppObjectsController {
             return allObjects.toArray(new ObjectBoundary[0]);
 
         }
-
 
     }

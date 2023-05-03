@@ -9,8 +9,8 @@ import superapp.bounderies.UserBoundary;
 import superapp.bounderies.UserIdBoundary;
 import superapp.data.UserEntity;
 import superapp.data.UserRole;
-import superapp.exceptions.UserBadRequestException;
-import superapp.exceptions.UserNotFoundException;
+import superapp.dataAccess.UserCrud;
+
 
 @Service
 public class UserServiceDB implements UsersService {
@@ -24,6 +24,10 @@ public class UserServiceDB implements UsersService {
 	@Override
 	@Transactional
 	public UserBoundary createUser(UserBoundary user) {
+		if (this.userCrud.findById(user.getUserId().getSuperapp()+"/"+user.getUserId().getEmail()).isPresent())
+			throw new UserBadRequestException("User already Exists");
+		if ((user.getUserId().getEmail()).matches("(^[a-zA-Z0-9]*)@([a-zA-Z]*).com"))
+			throw new UserBadRequestException("New User Email is incorrect");
 		if (user.getUserName() == null || user.getUserName().isEmpty()
 				|| user.getAvatar() == null || user.getAvatar().isEmpty())
 			throw new UserBadRequestException("Need to input an username and an avatar for new user");
@@ -35,15 +39,17 @@ public class UserServiceDB implements UsersService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public Optional<UserBoundary> login(String userSuperApp, String userEmail) {
-		return this.userCrud.findById(userSuperApp+"/"+userEmail).map(this::toBoundary);
+	public UserBoundary login(String userSuperApp, String userEmail) {
+		return this.userCrud.findById(userSuperApp+"/"+userEmail).map(this::toBoundary).orElseThrow(
+				() -> new UserNotFoundException("could not find user to login by id: "
+						+ userSuperApp+"/"+userEmail));
 	}
 
 	@Override
 	@Transactional
 	public UserBoundary update(String userSuperApp, String userEmail, UserBoundary update) {
 		UserEntity existing = this.userCrud.findById(userSuperApp+"/"+userEmail).orElseThrow(
-							  () -> new UserNotFoundException("could not find message for update by id: "
+							  () -> new UserNotFoundException("could not find user to update by id: "
 							  + userSuperApp+"/"+userEmail));
 		if(update.getRole()!=null){
 			existing.setRole(this.toEntityAsEnum(update.getRole()));
@@ -91,7 +97,7 @@ public class UserServiceDB implements UsersService {
 
 	}
 
-	private UserEntity toEntity(UserBoundary boundary) {
+	private UserEntity toEntity(UserBoundary boundary) {//TODO: clean unnecessary if and else, for values that cant be default
 
 		UserEntity entity = new UserEntity();
 		if (boundary.getUserId().getEmail() == null)

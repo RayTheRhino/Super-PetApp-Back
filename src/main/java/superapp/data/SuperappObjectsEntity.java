@@ -1,8 +1,6 @@
 package superapp.data;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -10,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "SuperappObjects")
 public class SuperappObjectsEntity {
 	@Id
-	private String objectId; // objectId = superapp+internalObjectId
+	private String objectId;
     private String type;
     private String alias;
     private boolean active;
@@ -20,9 +18,14 @@ public class SuperappObjectsEntity {
     private String byEmail;
     private String bySuperapp;
     private Map<String, Object> objectDetails;
+
+	private List<SuperappObjectsEntity> children;
+
+	//private List<SuperappObjectsEntity> parents; avoid redundancy
 	
 	public SuperappObjectsEntity() {	
 		this.objectDetails = new TreeMap<>();
+		this.children = new ArrayList<>();
 	}
 
 	public String getObjectId() {
@@ -106,6 +109,36 @@ public class SuperappObjectsEntity {
 
 	public void setObjectDetails(Map<String, Object> objectDetails) {
 		this.objectDetails = objectDetails;
+	}
+
+	public List<SuperappObjectsEntity> getChildren() {
+		return children;
+	}
+
+	public void setChildren(List<SuperappObjectsEntity> children) {
+		this.children = children;
+	}
+
+//	public List<SuperappObjectsEntity> getParents() {
+//		return parents;
+//	}
+//
+//	public void setParents(List<SuperappObjectsEntity> parents) {
+//		this.parents = parents;
+//	} avoid redundancy
+
+	public void addChild(SuperappObjectsEntity child){
+		this.children.add(child);
+	}
+//	public void addParent(SuperappObjectsEntity child){
+//		this.children.add(child);
+//	} avoid redundancy
+
+
+	@Override
+	public boolean equals(Object obj) {
+		SuperappObjectsEntity object = (SuperappObjectsEntity) obj;
+		return this.getObjectId().equals(object.getObjectId());
 	}
 
 	@Override

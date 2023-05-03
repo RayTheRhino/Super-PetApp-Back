@@ -12,15 +12,14 @@ import superapp.bounderies.ObjectBoundary;
 import superapp.bounderies.ObjectId;
 import superapp.bounderies.UserIdBoundary;
 import superapp.data.SuperappObjectsEntity;
-import superapp.exceptions.SuperappObjectBadRequestException;
-import superapp.exceptions.SuperappObjectNotFoundException;
+import superapp.dataAccess.ObjectCrud;
 
 @Service
-public class ObjectsServiceDB implements ObjectsService {
+public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
     private ObjectCrud objectCrud;
 
     @Autowired
-    public void setObjectCrudCrud(ObjectCrud objectCrud) {
+    public void setObjectCrud(ObjectCrud objectCrud) {
         this.objectCrud = objectCrud;
     }
 
@@ -70,8 +69,10 @@ public class ObjectsServiceDB implements ObjectsService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<ObjectBoundary> getSpecificObject(String objectSuperApp, String internalObjectId) {
-        return this.objectCrud.findById(objectSuperApp+"/"+internalObjectId).map(this::toBoundary);
+    public ObjectBoundary getSpecificObject(String objectSuperApp, String internalObjectId) {
+        return this.objectCrud.findById(objectSuperApp+"/"+internalObjectId).map(this::toBoundary).orElseThrow(
+                () -> new SuperappObjectNotFoundException("No Object exists with this id: "+objectSuperApp+"/"+internalObjectId)
+        );
     }
 
     @Override
@@ -82,14 +83,6 @@ public class ObjectsServiceDB implements ObjectsService {
                 .stream()
                 .map(this::toBoundary)
                 .toList();
-//      Iterable<SuperappObjectsEntity> iterable = this.objectCrud.findAll();
-//      Iterator<SuperappObjectsEntity> iterator = iterable.iterator();
-//      List<ObjectBoundary> allObjList = new ArrayList<>();
-//      while (iterator.hasNext()) {
-//          ObjectBoundary boundary = toBoundary(iterator.next());
-//          allObjList.add(boundary);
-//      }
-//      return allObjList;
     }
 
     @Override
@@ -114,7 +107,7 @@ public class ObjectsServiceDB implements ObjectsService {
 
     }
 
-    private SuperappObjectsEntity toEntity(ObjectBoundary boundary) {
+    private SuperappObjectsEntity toEntity(ObjectBoundary boundary) {//TODO: clean unnecessary if and else, for values that cant be default
         SuperappObjectsEntity entity = new SuperappObjectsEntity();
 
         entity.setObjectId(boundary.getObjectId().getSuperapp()
@@ -162,5 +155,58 @@ public class ObjectsServiceDB implements ObjectsService {
 
     }
 
+    @Override
+    @Transactional
+    public void ObjectBindingChild(ObjectId parentId, ObjectId childId) {
 
+        if (parentId.giveAllId().equals(childId.giveAllId()))
+            throw new SuperappObjectBadRequestException("Can't bind object to itself");
+        SuperappObjectsEntity parentObject =
+                this.objectCrud
+                        .findById(parentId.giveAllId())
+                        .orElseThrow(()->new SuperappObjectNotFoundException("could not find origin message by id: " +
+                                parentId.giveAllId()));
+
+        SuperappObjectsEntity childObject =
+                this.objectCrud
+                        .findById(childId.giveAllId())
+                        .orElseThrow(()->new SuperappObjectNotFoundException("could not find response message by id: " +
+                                childId.giveAllId()));
+        if(parentObject.getChildren().contains(childObject))
+            throw new SuperappObjectBadRequestException("Object child already exists in children list");
+        parentObject.addChild(childObject);
+
+        this.objectCrud.save(parentObject);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ObjectBoundary> getChildren(String superapp, String internalObjectId) {
+        SuperappObjectsEntity parentObject =
+                this.objectCrud
+                        .findById(superapp+"/"+internalObjectId)
+                        .orElseThrow(()->new SuperappObjectNotFoundException("could not find origin message by id: " +
+                                superapp+"/"+internalObjectId));
+        List<SuperappObjectsEntity> responsesEntities = parentObject.getChildren();
+        List<ObjectBoundary> rv = new ArrayList<>();
+        for (SuperappObjectsEntity entity : responsesEntities) {
+            rv.add(this.toBoundary(entity));
+        }
+        return rv;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ObjectBoundary> getParents(String superapp, String internalObjectId) {
+        SuperappObjectsEntity childObject =
+                this.objectCrud
+                        .findById(superapp+"/"+internalObjectId)
+                        .orElseThrow(()->new SuperappObjectNotFoundException("could not find origin message by id: " +
+                                superapp+"/"+internalObjectId));
+        List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContains(childObject);
+
+        return rv.stream()
+                .map(this::toBoundary)
+                .toList();
+    }
 }

@@ -47,4 +47,14 @@ public class NewUserBoundary{
     public void setAvatar(String avatar) {
         this.avatar = avatar;
     }
+
+    @Override
+    public String toString() {
+        return "NewUserBoundary{" +
+                "email='" + email + '\'' +
+                ",\nrole='" + role + '\'' +
+                ",\nuserName='" + userName + '\'' +
+                ",\navatar='" + avatar + '\'' +
+                '}';
+    }
 }

@@ -1,4 +1,4 @@
-package superapp.logic;
+package superapp.dataAccess;
 
 import org.springframework.data.repository.ListCrudRepository;
 import superapp.data.UserEntity;

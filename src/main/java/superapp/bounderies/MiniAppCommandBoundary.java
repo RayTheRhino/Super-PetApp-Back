@@ -2,6 +2,7 @@ package superapp.bounderies;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class MiniAppCommandBoundary {
     private CommandId commandId;
@@ -20,6 +21,7 @@ public class MiniAppCommandBoundary {
     }
 
     public MiniAppCommandBoundary() {
+        this.commandAttribute = new TreeMap<>();
     }
 
     public CommandId getCommandId() {
@@ -60,5 +62,19 @@ public class MiniAppCommandBoundary {
 
     public void setCommandAttribute(Map<String, Object> commandAttribute) {
         this.commandAttribute = commandAttribute;
+    }
+
+    @Override
+    public String toString() {
+        return "MiniAppCommandBoundary{" +
+                "commandId= {Superapp= '" + commandId.getSuperapp() + '\''+
+                ", Miniapp= '" +commandId.getMiniapp() + '\''+
+                ", InternalId= '"+commandId.getInternalCommandId()+"'}"+
+                ",\ncommand='" + command + '\'' +
+                ",\ntargetObject=" + targetObject +
+                ",\ninvocationTimeStamp=" + invocationTimeStamp +
+                ",\ncommandAttribute=" + commandAttribute +
+                ",\ninvokedBy=" + invokedBy +
+                '}';
     }
 }
