@@ -10,7 +10,8 @@ public class test {
     private String baseURL;
     @AfterEach
     public void tearDown(){
-        this.restTamplate.delete();
+        return;
+        //this.restTamplate.delete();
     }
     @Test
     public void test___() throws Exception{

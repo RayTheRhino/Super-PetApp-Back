@@ -45,7 +45,7 @@ public class UserController {
     public void updateUserDetails (
             @PathVariable("superapp") String superapp,
             @PathVariable("userEmail") String userEmail,
-            @RequestBody UserBoundary input) throws Exception {
+            @RequestBody UserBoundary input) {
             usersService.update(superapp , userEmail ,input);
     }
 

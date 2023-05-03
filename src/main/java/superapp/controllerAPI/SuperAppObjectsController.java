@@ -4,9 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import superapp.bounderies.ObjectBoundary;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import superapp.bounderies.ObjectId;
 import superapp.logic.ObjectsService;
-import superapp.logic.SuperappObjectNotFoundException;
 
 import java.util.List;
 
@@ -47,7 +45,7 @@ public class SuperAppObjectsController {
         public ObjectBoundary retrieveObject(
                 @PathVariable("superapp") String superapp,
                 @PathVariable("InternalObjectId") String InternalObjectId) {
-                return objectsService.getSpecificObject(superapp,InternalObjectId).orElseThrow(()->new SuperappObjectNotFoundException("could not find message by id: " + InternalObjectId));
+                return objectsService.getSpecificObject(superapp,InternalObjectId);
         }
 
         @RequestMapping(
