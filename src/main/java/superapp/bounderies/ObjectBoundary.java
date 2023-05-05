@@ -2,6 +2,7 @@ package superapp.bounderies;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class ObjectBoundary {
     private ObjectId objectId;
@@ -26,7 +27,7 @@ public class ObjectBoundary {
     }
 
     public ObjectBoundary() {
-
+        this.objectDetails = new TreeMap<>();
     }
 
 
@@ -92,5 +93,20 @@ public class ObjectBoundary {
 
     public void setObjectDetails(Map<String, Object> objectDetails) {
         this.objectDetails = objectDetails;
+    }
+
+    @Override
+    public String toString() {
+        return "ObjectBoundary{" +
+                "objectId= {Superapp= '"+ objectId.getSuperapp()+'\''+
+                "IntenalId= '"+objectId.getInternalObjectId()+"'}"+
+                ",\ntype='" + type + '\'' +
+                ",\nalias='" + alias + '\'' +
+                ",\nactive=" + active +
+                ",\ncreationTimestamp=" + creationTimestamp +
+                ",\nlocation=" + location +
+                ",\ncreatedBy=" + createdBy +
+                ",\nobjectDetails=" + objectDetails +
+                '}';
     }
 }

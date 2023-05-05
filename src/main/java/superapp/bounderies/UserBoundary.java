@@ -53,4 +53,15 @@ public class UserBoundary {
     public void setAvatar(String avatar) {
         this.avatar = avatar;
     }
+
+    @Override
+    public String toString() {
+        return "UserBoundary{" +
+                "userId= {Superapp= '" + userId.getSuperapp() + '\''+
+                ", Email= '"+ userId.getEmail()+"'}" +
+                ",\nrole='" + role + '\'' +
+                ",\nuserName='" + userName + '\'' +
+                ",\navatar='" + avatar + '\'' +
+                '}';
+    }
 }

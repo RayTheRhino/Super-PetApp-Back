@@ -2,24 +2,19 @@ package superapp.bounderies;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class MiniAppCommandBoundary {
     private CommandId commandId;
     private String command;
     private TargetObject targetObject;
-    private Date invocationTimeStamp;
-    private Map<String,Object> commandAttribute;
+    private Date invocationTimestamp;
     private InvokedBy invokedBy;
+    private Map<String,Object> commandAttributes;
 
-    public InvokedBy getInvokedBy() {
-        return invokedBy;
-    }
-
-    public void setInvokedBy(InvokedBy invokedBy) {
-        this.invokedBy = invokedBy;
-    }
 
     public MiniAppCommandBoundary() {
+        this.commandAttributes = new TreeMap<>();
     }
 
     public CommandId getCommandId() {
@@ -46,19 +41,41 @@ public class MiniAppCommandBoundary {
         this.targetObject = targetObject;
     }
 
-    public Date getInvocationTimeStamp() {
-        return invocationTimeStamp;
+    public Date getInvocationTimestamp() {
+        return invocationTimestamp;
     }
 
-    public void setInvocationTimeStamp(Date invocationTimeStamp) {
-        this.invocationTimeStamp = invocationTimeStamp;
+    public void setInvocationTimestamp(Date invocationTimestamp) {
+        this.invocationTimestamp = invocationTimestamp;
     }
 
-    public Map<String, Object> getCommandAttribute() {
-        return commandAttribute;
+    public InvokedBy getInvokedBy() {
+        return invokedBy;
     }
 
-    public void setCommandAttribute(Map<String, Object> commandAttribute) {
-        this.commandAttribute = commandAttribute;
+    public void setInvokedBy(InvokedBy invokedBy) {
+        this.invokedBy = invokedBy;
+    }
+
+    public Map<String, Object> getCommandAttributes() {
+        return commandAttributes;
+    }
+
+    public void setCommandAttributes(Map<String, Object> commandAttributes) {
+        this.commandAttributes = commandAttributes;
+    }
+
+    @Override
+    public String toString() {
+        return "MiniAppCommandBoundary{" +
+                "commandId= {Superapp= '" + commandId.getSuperapp() + '\''+
+                ", Miniapp= '" +commandId.getMiniapp() + '\''+
+                ", InternalId= '"+commandId.getInternalCommandId()+"'}"+
+                ",\ncommand='" + command + '\'' +
+                ",\ntargetObject=" + targetObject +
+                ",\ninvocationTimeStamp=" + invocationTimestamp +
+                ",\ncommandAttribute=" + commandAttributes +
+                ",\ninvokedBy=" + invokedBy +
+                '}';
     }
 }

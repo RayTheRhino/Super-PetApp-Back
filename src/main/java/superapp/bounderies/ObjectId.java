@@ -8,10 +8,7 @@ public class ObjectId {
         this.superapp = superapp;
         this.internalObjectId = internalObjectId;
     }
-
-    public ObjectId(){
-
-    }
+    public ObjectId(){    }
 
     public String getSuperapp() {
         return superapp;
@@ -27,5 +24,16 @@ public class ObjectId {
 
     public void setInternalObjectId(String internalObjectId) {
         this.internalObjectId = internalObjectId;
+    }
+
+    public String giveAllId(){
+        return superapp+"/"+internalObjectId;
+    }
+    @Override
+    public String toString() {
+        return "ObjectId{" +
+                "superapp='" + superapp + '\'' +
+                ", internalObjectId='" + internalObjectId + '\'' +
+                '}';
     }
 }

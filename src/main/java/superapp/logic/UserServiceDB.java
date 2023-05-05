@@ -9,8 +9,8 @@ import superapp.bounderies.UserBoundary;
 import superapp.bounderies.UserIdBoundary;
 import superapp.data.UserEntity;
 import superapp.data.UserRole;
-import superapp.exceptions.UserBadRequestException;
-import superapp.exceptions.UserNotFoundException;
+import superapp.dataAccess.UserCrud;
+
 
 @Service
 public class UserServiceDB implements UsersService {
@@ -24,9 +24,16 @@ public class UserServiceDB implements UsersService {
 	@Override
 	@Transactional
 	public UserBoundary createUser(UserBoundary user) {
+		if (this.userCrud.findById(user.getUserId().getSuperapp()+"/"+user.getUserId().getEmail()).isPresent())
+			throw new UserBadRequestException("User already Exists");
+		if ((user.getUserId().getEmail()).matches("(^[a-zA-Z0-9]*)@([a-zA-Z]*).com"))
+			throw new UserBadRequestException("New User Email is incorrect");
 		if (user.getUserName() == null || user.getUserName().isEmpty()
 				|| user.getAvatar() == null || user.getAvatar().isEmpty())
 			throw new UserBadRequestException("Need to input an username and an avatar for new user");
+		if(user.getRole()!=null && this.toEntityAsEnum(user.getRole()) != null)
+			throw new UserBadRequestException("Incorrect user role");
+
 		UserEntity entity = this.toEntity(user);
 		entity = this.userCrud.save(entity);
 		user = toBoundary(entity);
@@ -35,17 +42,21 @@ public class UserServiceDB implements UsersService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public Optional<UserBoundary> login(String userSuperApp, String userEmail) {
-		return this.userCrud.findById(userSuperApp+"/"+userEmail).map(this::toBoundary);
+	public UserBoundary login(String userSuperApp, String userEmail) {
+		return this.userCrud.findById(userSuperApp+"/"+userEmail).map(this::toBoundary).orElseThrow(
+				() -> new UserNotFoundException("could not find user to login by id: "
+						+ userSuperApp+"/"+userEmail));
 	}
 
 	@Override
 	@Transactional
 	public UserBoundary update(String userSuperApp, String userEmail, UserBoundary update) {
-		UserEntity existing = this.userCrud.findById(userSuperApp+"/"+userEmail).orElseThrow(
-							  () -> new UserNotFoundException("could not find message for update by id: "
+		UserEntity existing = this.userCrud.findById(this.giveAllId(userSuperApp,userEmail)).orElseThrow(
+							  () -> new UserNotFoundException("could not find user to update by id: "
 							  + userSuperApp+"/"+userEmail));
 		if(update.getRole()!=null){
+			if (this.toEntityAsEnum(update.getRole()) != null)
+				throw new UserBadRequestException("Incorrect user role");
 			existing.setRole(this.toEntityAsEnum(update.getRole()));
 		}
 		if(update.getAvatar()!=null){
@@ -94,25 +105,23 @@ public class UserServiceDB implements UsersService {
 	private UserEntity toEntity(UserBoundary boundary) {
 
 		UserEntity entity = new UserEntity();
-		if (boundary.getUserId().getEmail() == null)
-			boundary.getUserId().setEmail("example@email.com");
+
 		entity.setUserId(boundary.getUserId().getSuperapp()+"/"+boundary.getUserId().getEmail());
 
-		if (boundary.getUserName() != null)
-			entity.setUserName(boundary.getUserName());
-		else
-			entity.setUserName("");// TODO: Check if we need to get rid of default values if at creation we will throw exception
-		if (boundary.getAvatar() != null)
-			entity.setAvatar(boundary.getAvatar());
-		else
-			entity.setAvatar("");// TODO: Check if we need to get rid of default values if at creation we will throw exception
-		if (boundary.getRole() != null)
-			entity.setRole(toEntityAsEnum(boundary.getRole()));
-		else
-			entity.setRole(UserRole.MINIAPP_USER);
+
+		entity.setUserName(boundary.getUserName());
+
+		entity.setAvatar(boundary.getAvatar());
+
+		entity.setRole(toEntityAsEnum(boundary.getRole()));
+
 
 		return entity;
 
+	}
+
+	private String giveAllId(String superapp, String email){
+		return superapp+"/"+email;
 	}
 
 

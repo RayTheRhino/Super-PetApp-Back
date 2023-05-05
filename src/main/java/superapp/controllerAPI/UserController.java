@@ -6,7 +6,6 @@ import superapp.bounderies.UserBoundary;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import superapp.exceptions.UserNotFoundException;
 import superapp.logic.UsersService;
 
 @RestController
@@ -35,8 +34,7 @@ public class UserController {
     public UserBoundary loginAndRetriveUserDetails (
             @PathVariable("superapp") String superapp,
             @PathVariable("email") String email){
-        return  usersService.login(superapp,email).orElseThrow(
-				() -> new UserNotFoundException("Couldn't find user by this email: "+email));
+        return  usersService.login(superapp,email);
     }
 
     
@@ -47,7 +45,7 @@ public class UserController {
     public void updateUserDetails (
             @PathVariable("superapp") String superapp,
             @PathVariable("userEmail") String userEmail,
-            @RequestBody UserBoundary input) throws Exception {
+            @RequestBody UserBoundary input) {
             usersService.update(superapp , userEmail ,input);
     }
 

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import superapp.logic.MiniappCommandsService;
 
-import java.util.UUID;
 
 
 @RestController
@@ -31,7 +30,7 @@ public class MiniAppCommandController {
             @PathVariable("miniAppName") String miniAppName,
             @RequestBody MiniAppCommandBoundary miniAppCommandBoundary) {
 
-        miniAppCommandBoundary.setCommandId(new CommandId("SuperPetApp", miniAppName, "")); // TODO: change into logic package (semi Changed!)
+        miniAppCommandBoundary.setCommandId(new CommandId("SuperPetApp", miniAppName, ""));
         return miniappCommandsService.invokeCommand(miniAppCommandBoundary);
     }
 

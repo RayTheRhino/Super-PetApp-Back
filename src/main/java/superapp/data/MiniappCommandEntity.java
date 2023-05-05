@@ -10,21 +10,18 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "MiniappCommands")
 public class MiniappCommandEntity {
 	@Id
-	private String commandId; //  commandId = CommandId.superapp
-							 //   + CommandId.miniapp + CommandId.internalCommandId
+	private String commandId;
 	private String command;
     private String targetSuperapp;
     private String targetObjectId;
-//    @Temporal(TemporalType.TIMESTAMP)
-    private Date invocationTimeStamp;
-//	@Convert(converter = SuperappConverterOfMapToJson.class)
-//	@Lob
-    private Map<String,Object> commandAttribute;
+    private Date invocationTimestamp;
 	private String invokedByEmail;
 	private String invokedBySuperapp;
+    private Map<String,Object> commandAttributes;
+
 
 	public MiniappCommandEntity() {
-		this.commandAttribute = new TreeMap<>();
+		this.commandAttributes = new TreeMap<>();
 	}
 
 	public String getInvokedByEmail() {
@@ -80,20 +77,20 @@ public class MiniappCommandEntity {
 		this.targetObjectId = targetObjectId;
 	}
 
-	public Date getInvocationTimeStamp() {
-		return invocationTimeStamp;
+	public Date getInvocationTimestamp() {
+		return invocationTimestamp;
 	}
 
-	public void setInvocationTimeStamp(Date invocationTimeStamp) {
-		this.invocationTimeStamp = invocationTimeStamp;
+	public void setInvocationTimestamp(Date invocationTimestamp) {
+		this.invocationTimestamp = invocationTimestamp;
 	}
 
-	public Map<String, Object> getCommandAttribute() {
-		return commandAttribute;
+	public Map<String, Object> getCommandAttributes() {
+		return commandAttributes;
 	}
 
-	public void setCommandAttribute(Map<String, Object> commandAttribute) {
-		this.commandAttribute = commandAttribute;
+	public void setCommandAttributes(Map<String, Object> commandAttributes) {
+		this.commandAttributes = commandAttributes;
 	}
 
 
