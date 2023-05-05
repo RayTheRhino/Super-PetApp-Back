@@ -79,7 +79,7 @@ public class MiniappCommandServiceDB implements MiniappCommandsService {
 		
 	}
 	
-	private MiniappCommandEntity toEntity(MiniAppCommandBoundary boundary) { //TODO: clean unnecessary if and else, for values that cant be default
+	private MiniappCommandEntity toEntity(MiniAppCommandBoundary boundary) {
 		MiniappCommandEntity entity = new MiniappCommandEntity();
 
 		entity.setCommandId(giveAllId(boundary.getCommandId().getSuperapp(),
