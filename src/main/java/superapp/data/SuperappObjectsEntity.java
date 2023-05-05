@@ -3,6 +3,7 @@ package superapp.data;
 import java.util.*;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "SuperappObjects")
@@ -19,6 +20,7 @@ public class SuperappObjectsEntity {
     private String bySuperapp;
     private Map<String, Object> objectDetails;
 
+	@DBRef
 	private List<SuperappObjectsEntity> children;
 
 	//private List<SuperappObjectsEntity> parents; avoid redundancy
@@ -133,7 +135,6 @@ public class SuperappObjectsEntity {
 //	public void addParent(SuperappObjectsEntity child){
 //		this.children.add(child);
 //	} avoid redundancy
-
 
 	@Override
 	public boolean equals(Object obj) {

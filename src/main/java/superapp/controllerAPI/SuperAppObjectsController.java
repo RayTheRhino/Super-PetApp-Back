@@ -35,7 +35,7 @@ public class SuperAppObjectsController {
         public void updateObject ( @PathVariable("superapp") String superapp,
                                    @PathVariable("InternalObjectId") String InternalObjectId,
                                    @RequestBody ObjectBoundary input) {
-                objectsService.updateObject(superapp,InternalObjectId,input); // TODO: need to ask how to update the children
+                objectsService.updateObject(superapp,InternalObjectId,input);
         }
 
         @RequestMapping(

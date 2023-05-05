@@ -27,9 +27,8 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
     @Override
     @Transactional
     public ObjectBoundary CreateObject(ObjectBoundary object) {
-        if ( object.getAlias() == null || object.getAlias().isEmpty()
-                || object.getType() == null || object.getType().isEmpty() )
-            throw new SuperappObjectBadRequestException("Need to input the alias and type of object");
+
+
         object.setObjectId(new ObjectId("SuperPetApp", UUID.randomUUID().toString()));
         object.setCreationTimestamp(new Date());
         SuperappObjectsEntity entity = this.toEntity(object);
@@ -71,7 +70,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
     @Transactional(readOnly = true)
     public ObjectBoundary getSpecificObject(String objectSuperApp, String internalObjectId) {
         return this.objectCrud.findById(objectSuperApp+"/"+internalObjectId).map(this::toBoundary).orElseThrow(
-                () -> new SuperappObjectNotFoundException("No Object exists with this id: "+objectSuperApp+"/"+internalObjectId)
+                () -> new SuperappObjectNotFoundException("Could not find object by id: "+objectSuperApp+"/"+internalObjectId)
         );
     }
 
@@ -107,27 +106,18 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
 
     }
 
-    private SuperappObjectsEntity toEntity(ObjectBoundary boundary) {//TODO: clean unnecessary if and else, for values that cant be default
+    private SuperappObjectsEntity toEntity(ObjectBoundary boundary) {
         SuperappObjectsEntity entity = new SuperappObjectsEntity();
 
-        entity.setObjectId(boundary.getObjectId().getSuperapp()
-                + "/" + boundary.getObjectId().getInternalObjectId());
-        if (boundary.getType() != null)
-        	entity.setType(boundary.getType());
-        else
-        	entity.setType("");
-        if (boundary.getAlias() != null)
-        	entity.setAlias(boundary.getAlias());
-        else
-        	entity.setAlias("");
+        entity.setObjectId(boundary.getObjectId().giveAllId());
+        entity.setType(boundary.getType());
+        entity.setAlias(boundary.getAlias());
+
         if (boundary.getActive() != null)
         	entity.setActive(boundary.getActive());
         else
         	entity.setActive(false);
-        if (boundary.getCreationTimestamp() != null)
-        	entity.setCreationTimestamp(boundary.getCreationTimestamp());
-        else
-        	entity.setCreationTimestamp(new Date());
+        entity.setCreationTimestamp(boundary.getCreationTimestamp());
         if (boundary.getLocation() != null && boundary.getLocation().getLat() != null)
         	entity.setLat(boundary.getLocation().getLat());
         else
@@ -136,18 +126,11 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
         	entity.setLng(boundary.getLocation().getLng());
         else
         	entity.setLng(0.0);
-        if (boundary.getCreatedBy() != null 
-        		&& boundary.getCreatedBy().getUserId() != null
-        		&& boundary.getCreatedBy().getUserId().getEmail() != null)
-        	entity.setByEmail(boundary.getCreatedBy().getUserId().getEmail());
-        else
-        	entity.setByEmail("");
-        if (boundary.getCreatedBy() != null 
-        	&& boundary.getCreatedBy().getUserId() != null
-        	&& boundary.getCreatedBy().getUserId().getSuperapp() != null)
-        	entity.setBySuperapp(boundary.getCreatedBy().getUserId().getSuperapp());
-        else
-        	entity.setBySuperapp("SuperPetApp");
+
+        entity.setByEmail(boundary.getCreatedBy().getUserId().getEmail());
+
+        entity.setBySuperapp(boundary.getCreatedBy().getUserId().getSuperapp());
+
         if (boundary.getObjectDetails() != null)
         	entity.setObjectDetails(boundary.getObjectDetails());
         // else, do nothing , the constructor already made a new TreeMap 
@@ -184,9 +167,9 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
     public List<ObjectBoundary> getChildren(String superapp, String internalObjectId) {
         SuperappObjectsEntity parentObject =
                 this.objectCrud
-                        .findById(superapp+"/"+internalObjectId)
+                        .findById(this.giveFullId(superapp,internalObjectId))
                         .orElseThrow(()->new SuperappObjectNotFoundException("could not find origin message by id: " +
-                                superapp+"/"+internalObjectId));
+                                this.giveFullId(superapp,internalObjectId)));
         List<SuperappObjectsEntity> responsesEntities = parentObject.getChildren();
         List<ObjectBoundary> rv = new ArrayList<>();
         for (SuperappObjectsEntity entity : responsesEntities) {
@@ -200,13 +183,32 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
     public List<ObjectBoundary> getParents(String superapp, String internalObjectId) {
         SuperappObjectsEntity childObject =
                 this.objectCrud
-                        .findById(superapp+"/"+internalObjectId)
+                        .findById(this.giveFullId(superapp,internalObjectId))
                         .orElseThrow(()->new SuperappObjectNotFoundException("could not find origin message by id: " +
-                                superapp+"/"+internalObjectId));
+                                this.giveFullId(superapp,internalObjectId)));
         List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContains(childObject);
 
         return rv.stream()
                 .map(this::toBoundary)
                 .toList();
+    }
+
+    private String giveFullId(String superapp, String intrenalId){
+        return superapp+"/"+intrenalId;
+    }
+    private void checkInputForNewCommand(ObjectBoundary boundary){
+
+        if ( boundary.getAlias() == null || boundary.getAlias().isEmpty())
+            throw new SuperappObjectBadRequestException("Need to input the alias of object");
+        if (boundary.getType() == null || boundary.getType().isEmpty())
+            throw new SuperappObjectBadRequestException("Need to input the type of object");
+        if (boundary.getCreatedBy() == null
+                || boundary.getCreatedBy().getUserId() == null
+                || boundary.getCreatedBy().getUserId().getEmail() == null
+                || boundary.getCreatedBy().getUserId().getEmail().isBlank()
+                || boundary.getCreatedBy().getUserId().getSuperapp() == null
+                || boundary.getCreatedBy().getUserId().getSuperapp().isBlank())
+            throw new SuperappObjectBadRequestException("Need to input the alias and type of object");
+
     }
 }
