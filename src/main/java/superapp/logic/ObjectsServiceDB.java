@@ -27,7 +27,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
     @Override
     @Transactional
     public ObjectBoundary CreateObject(ObjectBoundary object) {
-
+        checkInputForNewObject(object);
 
         object.setObjectId(new ObjectId("SuperPetApp", UUID.randomUUID().toString()));
         object.setCreationTimestamp(new Date());
@@ -196,7 +196,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
     private String giveFullId(String superapp, String intrenalId){
         return superapp+"/"+intrenalId;
     }
-    private void checkInputForNewCommand(ObjectBoundary boundary){
+    private void checkInputForNewObject(ObjectBoundary boundary){
 
         if ( boundary.getAlias() == null || boundary.getAlias().isEmpty())
             throw new SuperappObjectBadRequestException("Need to input the alias of object");
