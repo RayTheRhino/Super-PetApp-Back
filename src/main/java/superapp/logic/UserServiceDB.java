@@ -24,16 +24,7 @@ public class UserServiceDB implements UsersService {
 	@Override
 	@Transactional
 	public UserBoundary createUser(UserBoundary user) {
-		if (this.userCrud.findById(user.getUserId().getSuperapp()+"/"+user.getUserId().getEmail()).isPresent())
-			throw new UserBadRequestException("User already Exists");
-		if ((user.getUserId().getEmail()).matches("(^[a-zA-Z0-9]*)@([a-zA-Z]*).com"))
-			throw new UserBadRequestException("New User Email is incorrect");
-		if (user.getUserName() == null || user.getUserName().isEmpty()
-				|| user.getAvatar() == null || user.getAvatar().isEmpty())
-			throw new UserBadRequestException("Need to input an username and an avatar for new user");
-		if(user.getRole()!=null && this.toEntityAsEnum(user.getRole()) != null)
-			throw new UserBadRequestException("Incorrect user role");
-
+		checkInputForNewUser(user);
 		UserEntity entity = this.toEntity(user);
 		entity = this.userCrud.save(entity);
 		user = toBoundary(entity);
@@ -108,7 +99,6 @@ public class UserServiceDB implements UsersService {
 
 		entity.setUserId(boundary.getUserId().getSuperapp()+"/"+boundary.getUserId().getEmail());
 
-
 		entity.setUserName(boundary.getUserName());
 
 		entity.setAvatar(boundary.getAvatar());
@@ -124,6 +114,17 @@ public class UserServiceDB implements UsersService {
 		return superapp+"/"+email;
 	}
 
+	private void checkInputForNewUser(UserBoundary user){
+		if (this.userCrud.findById(user.getUserId().getSuperapp()+"/"+user.getUserId().getEmail()).isPresent())
+			throw new UserBadRequestException("User already Exists");
+		if (!(user.getUserId().getEmail()).matches("(^[a-zA-Z0-9]*)@([a-zA-Z]*).com"))
+			throw new UserBadRequestException("New User Email is incorrect");
+		if (user.getUserName() == null || user.getUserName().isBlank()
+				|| user.getAvatar() == null || user.getAvatar().isBlank())
+			throw new UserBadRequestException("Need to input an username and an avatar for new user");
+		if(user.getRole()!=null && this.toEntityAsEnum(user.getRole()) == null)
+			throw new UserBadRequestException("Incorrect user role");
+	}
 
 
 }

@@ -26,4 +26,8 @@ public class Location {
     public void setLng(Double lng) {
         this.lng = lng;
     }
+
+    public String toString(){
+        return "{Lat= "+this.lat+", Lng= "+this.lng+"}";
+    }
 }

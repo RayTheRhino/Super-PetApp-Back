@@ -17,4 +17,10 @@ public class CreatedBy {
     public void setUserId(UserIdBoundary userId) {
         this.userId = userId;
     }
+
+    @Override
+    public String toString() {
+        return "{userId= " + userId +
+                '}';
+    }
 }
