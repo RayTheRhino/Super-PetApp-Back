@@ -46,10 +46,10 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
             								() -> new SuperappObjectNotFoundException(
             										"could not find message for update by id: "
             										+ internalObjectId));
-            if (update.getType() != null) {
+            if (update.getType() != null && !update.getType().isBlank()) {
                 existing.setType(update.getType());
             }
-            if (update.getAlias() != null) {
+            if (update.getAlias() != null && !update.getAlias().isBlank()) {
                 existing.setAlias(update.getAlias());
             }
             if (update.getActive() != null)
@@ -198,14 +198,15 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
     }
     private void checkInputForNewObject(ObjectBoundary boundary){
 
-        if ( boundary.getAlias() == null || boundary.getAlias().isEmpty())
+        if ( boundary.getAlias() == null || boundary.getAlias().isBlank())
             throw new SuperappObjectBadRequestException("Need to input the alias of object");
-        if (boundary.getType() == null || boundary.getType().isEmpty())
+        if (boundary.getType() == null || boundary.getType().isBlank())
             throw new SuperappObjectBadRequestException("Need to input the type of object");
         if (boundary.getCreatedBy() == null
                 || boundary.getCreatedBy().getUserId() == null
                 || boundary.getCreatedBy().getUserId().getEmail() == null
                 || boundary.getCreatedBy().getUserId().getEmail().isBlank()
+                || !boundary.getCreatedBy().getUserId().getEmail().matches("(^[a-zA-Z0-9]*[a-zA-Z][a-zA-Z0-9]*)@([a-zA-Z]+).com")
                 || boundary.getCreatedBy().getUserId().getSuperapp() == null
                 || boundary.getCreatedBy().getUserId().getSuperapp().isBlank())
             throw new SuperappObjectBadRequestException("Need to input the alias and type of object");

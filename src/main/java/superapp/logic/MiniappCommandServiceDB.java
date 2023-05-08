@@ -118,11 +118,12 @@ public class MiniappCommandServiceDB implements MiniappCommandsService {
 				|| boundary.getTargetObject().getObjectId().getSuperapp().isBlank())
 			throw new MiniappCommandBadRequestException("New command needs target object, with object id including internal id and superapp name");
 		if (boundary.getInvokedBy() == null
-			|| boundary.getInvokedBy().getUserId() == null
-			|| boundary.getInvokedBy().getUserId().getEmail() == null
-			|| boundary.getInvokedBy().getUserId().getEmail().isBlank()
-			|| boundary.getInvokedBy().getUserId().getSuperapp() == null
-			|| boundary.getInvokedBy().getUserId().getSuperapp().isBlank())
+				|| boundary.getInvokedBy().getUserId() == null
+				|| boundary.getInvokedBy().getUserId().getEmail() == null
+				|| boundary.getInvokedBy().getUserId().getEmail().isBlank()
+				|| !boundary.getInvokedBy().getUserId().getEmail().matches("(^[a-zA-Z0-9]*[a-zA-Z][a-zA-Z0-9]*)@([a-zA-Z]+).com")
+				|| boundary.getInvokedBy().getUserId().getSuperapp() == null
+				|| boundary.getInvokedBy().getUserId().getSuperapp().isBlank())
 			throw new MiniappCommandBadRequestException("New command needs invoked identification, with user id including email and superapp name");
 	}
 

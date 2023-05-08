@@ -46,14 +46,14 @@ public class UserServiceDB implements UsersService {
 							  () -> new UserNotFoundException("could not find user to update by id: "
 							  + userSuperApp+"/"+userEmail));
 		if(update.getRole()!=null){
-			if (this.toEntityAsEnum(update.getRole()) != null)
+			if (this.toEntityAsEnum(update.getRole()) == null)
 				throw new UserBadRequestException("Incorrect user role");
 			existing.setRole(this.toEntityAsEnum(update.getRole()));
 		}
-		if(update.getAvatar()!=null){
+		if(update.getAvatar()!=null && !update.getAvatar().isBlank()){
 			existing.setAvatar(update.getAvatar());
 		}
-		if(update.getUserName()!=null){
+		if(update.getUserName()!=null && !update.getUserName().isBlank()){
 			existing.setUserName(update.getUserName());
 		}
 		existing = userCrud.save(existing);
@@ -78,10 +78,11 @@ public class UserServiceDB implements UsersService {
 	}
 	private UserRole toEntityAsEnum (String value) {
 		if (value != null) {
-			return UserRole.valueOf(value);
-		}else {
-			return null;
+			for (UserRole role : UserRole.values())
+				if (value.equals(role.name()))
+					return UserRole.valueOf(value);
 		}
+		return null;
 	}
 	private UserBoundary toBoundary(UserEntity entity) {
 		UserBoundary boundary = new UserBoundary();
@@ -117,7 +118,7 @@ public class UserServiceDB implements UsersService {
 	private void checkInputForNewUser(UserBoundary user){
 		if (this.userCrud.findById(user.getUserId().getSuperapp()+"/"+user.getUserId().getEmail()).isPresent())
 			throw new UserBadRequestException("User already Exists");
-		if (!(user.getUserId().getEmail()).matches("(^[a-zA-Z0-9]*)@([a-zA-Z]*).com"))
+		if (!(user.getUserId().getEmail()).matches("(^[a-zA-Z0-9]*[a-zA-Z][a-zA-Z0-9]*)@([a-zA-Z]+).com"))
 			throw new UserBadRequestException("New User Email is incorrect");
 		if (user.getUserName() == null || user.getUserName().isBlank()
 				|| user.getAvatar() == null || user.getAvatar().isBlank())
