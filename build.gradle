@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.example'
-version = '0.1-SPRINT4'
+version = '0.1-SPRINT5'
 sourceCompatibility = '17'
 
 repositories {
