@@ -3,6 +3,7 @@ package superapp.logic;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,16 +11,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import superapp.bounderies.*;
 import superapp.data.MiniappCommandEntity;
+import superapp.data.SuperappObjectsEntity;
 import superapp.dataAccess.MiniappCommandCrud;
 
 @Service
 public class MiniappCommandServiceDB implements MiniappCommandsService {
 	private MiniappCommandCrud miniappCommandCrud;
-	
+	private ObjectsService objectsService;
 	
 	@Autowired
 	public void setMiniappCommandCrud(MiniappCommandCrud miniappCommandCrud) {
 		this.miniappCommandCrud = miniappCommandCrud;
+	}
+	@Autowired
+	public void setObjectCrud(ObjectsService objectsServiceDB) {
+		this.objectsService = objectsServiceDB;
 	}
 
 	@Override
@@ -30,8 +36,23 @@ public class MiniappCommandServiceDB implements MiniappCommandsService {
 		MiniappCommandEntity entity = this.toEntity(command);
 		miniappCommandCrud.save(entity);
 		command = this.toBoundary(entity);
-		return command;
+		return ConfigureCommand(command);
 
+
+	}
+
+	private Object ConfigureCommand(MiniAppCommandBoundary command) {
+		if(command.getCommand().equals("GetAllParkReviews")) {
+			List<ObjectBoundary> list = this.objectsService.getAllObjects();
+			List<ObjectBoundary> parkReviews = list.stream().filter(x -> x.getType().equals("park-review")).collect(Collectors.toList());
+			return parkReviews;
+		}
+		if(command.getCommand().equals("GetAllShopReviews")){
+			List<ObjectBoundary> list = this.objectsService.getAllObjects();
+			List<ObjectBoundary> shopReviews = list.stream().filter(x -> x.getType().equals("shop-review")).collect(Collectors.toList());
+			return shopReviews;
+		}
+		return command;
 	}
 
 	@Override
