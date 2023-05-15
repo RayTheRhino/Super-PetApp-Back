@@ -52,6 +52,11 @@ public class MiniappCommandServiceDB implements MiniappCommandsService {
 			List<ObjectBoundary> shopReviews = list.stream().filter(x -> x.getType().equals("shop-review")).collect(Collectors.toList());
 			return shopReviews;
 		}
+		if(command.getCommand().equals("GetAllMessages")){
+			List<ObjectBoundary> list = this.objectsService.getAllObjects();
+			List<ObjectBoundary> messages = list.stream().filter(x -> x.getType().equals("message")).collect(Collectors.toList());
+			return messages;
+		}
 		return command;
 	}
 
