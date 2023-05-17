@@ -8,6 +8,9 @@ public class ObjectId {
         this.superapp = superapp;
         this.internalObjectId = internalObjectId;
     }
+    public ObjectId(String internalObjectId) {
+        this.internalObjectId = internalObjectId;
+    }
     public ObjectId(){    }
 
     public String getSuperapp() {

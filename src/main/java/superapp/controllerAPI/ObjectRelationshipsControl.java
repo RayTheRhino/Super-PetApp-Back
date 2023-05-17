@@ -30,8 +30,8 @@ public class ObjectRelationshipsControl {
             @RequestBody ObjectId input,
             @RequestParam (name = "userSuperapp") String userSuperapp,
             @RequestParam (name = "userEmail") String email
-            ) { //TODO: Update Functions
-        objectServiceWBind.ObjectBindingChild(new ObjectId(superapp,InternalObjectId), input);
+            ) {
+        objectServiceWBind.ObjectBindingChild(new ObjectId(superapp,InternalObjectId), input,userSuperapp,email);
     }
 
     @RequestMapping(
@@ -47,7 +47,7 @@ public class ObjectRelationshipsControl {
             @RequestParam (name = "page", required = false, defaultValue = "0") int page){
 
         List<ObjectBoundary> rv = this.objectServiceWBind
-                .getChildren(superapp,InternalObjectId); // TODO: Update Functions
+                .getChildren(superapp,InternalObjectId,userSuperapp,email,size,page);
         return rv.toArray(new ObjectBoundary[0]);
     }
     @RequestMapping(
@@ -62,7 +62,7 @@ public class ObjectRelationshipsControl {
             @RequestParam (name = "size", required = false, defaultValue = "10") int size,
             @RequestParam (name = "page", required = false, defaultValue = "0") int page){
         List<ObjectBoundary> rv = this.objectServiceWBind
-                .getParents(superapp,InternalObjectId); //TODO: Update Functions
+                .getParents(superapp,InternalObjectId,userSuperapp,email,size,page);
         return rv.toArray(new ObjectBoundary[0]);
     }
 

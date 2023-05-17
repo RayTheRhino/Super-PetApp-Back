@@ -8,6 +8,9 @@ public class UserIdBoundary{
         this.superapp = superapp;
         this.email = email;
     }
+    public UserIdBoundary(String email){
+        this.email = email;
+    }
 
     public UserIdBoundary(){
     }

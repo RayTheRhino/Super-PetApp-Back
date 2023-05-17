@@ -5,41 +5,63 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import superapp.bounderies.*;
 import superapp.data.MiniappCommandEntity;
-import superapp.data.SuperappObjectsEntity;
+import superapp.data.UserRole;
 import superapp.dataAccess.MiniappCommandCrud;
+import superapp.dataAccess.ObjectCrud;
+import superapp.dataAccess.UserCrud;
 
 @Service
-public class MiniappCommandServiceDB implements MiniappCommandsService {
+public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	private MiniappCommandCrud miniappCommandCrud;
+	private UserCrud userCrud;
 	private ObjectsService objectsService;
-	
+
+	private ObjectCrud objectCrud;
+	private ObjectMapper jackson;
+	private JmsTemplate jmsTemplate;
+	private String superapp;
+
+	@Value("${spring.application.name}")
+	public void setSuperapp(String superapp){this.superapp = superapp;}
+
 	@Autowired
-	public void setMiniappCommandCrud(MiniappCommandCrud miniappCommandCrud) {
-		this.miniappCommandCrud = miniappCommandCrud;
+	public void setJmsTemplate(JmsTemplate jmsTemplate) {
+		this.jmsTemplate = jmsTemplate;
+		this.jmsTemplate.setDeliveryDelay(3000L);
 	}
+
+	@Autowired
+	public void setMiniappCommandCrud(MiniappCommandCrud miniappCommandCrud) {this.miniappCommandCrud = miniappCommandCrud;}
+
+	@Autowired
+	public void setObjectCrud(ObjectCrud objectCrud) {this.objectCrud = objectCrud;}
+	@Autowired
+	public void setUserCrud(UserCrud userCrud) {this.userCrud = userCrud;}
+
 	@Autowired
 	public void setObjectCrud(ObjectsService objectsServiceDB) {
 		this.objectsService = objectsServiceDB;
 	}
 
-	@Override
-	public Object invokeCommand(MiniAppCommandBoundary command) { // For now, it will just convert to entity and insert to db. Later add real logic...
-		this.checkInputForNewCommand(command);
-		command.setCommandId(new CommandId("SuperPetApp",command.getCommandId().getMiniapp(),UUID.randomUUID().toString()));
-		command.setInvocationTimestamp(new Date());
-		MiniappCommandEntity entity = this.toEntity(command);
-		miniappCommandCrud.save(entity);
-		command = this.toBoundary(entity);
-		return ConfigureCommand(command);
-
-
+	@PostConstruct
+	public void setup(){
+		this.jackson = new ObjectMapper();
 	}
+
+	@Override
+	@Deprecated
+	public Object invokeCommand(MiniAppCommandBoundary command) { throw new MiniappCommandUnauthorizedException("Unavailable method");}
 
 	private Object ConfigureCommand(MiniAppCommandBoundary command) {
 		if(command.getCommand().equals("GetAllParkReviews")) {
@@ -62,63 +84,48 @@ public class MiniappCommandServiceDB implements MiniappCommandsService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<MiniAppCommandBoundary> getAllCommands() {
-		List<MiniappCommandEntity> list = this.miniappCommandCrud.findAll();
-		return list
-				.stream()
-				.map(this::toBoundary)
-				.toList();
-	}
-	@Override
-	@Transactional(readOnly = true) 
-	public List<MiniAppCommandBoundary> getAllMiniAppCommands(String miniappName) {
-		List<MiniappCommandEntity> list = this.miniappCommandCrud.findAll();
-		return list
-				.stream()
-				.filter(t->t.getCommandMiniApp().equals(miniappName))
-				.map(this::toBoundary)
-				.toList();
+	@Deprecated
+	public List<MiniAppCommandBoundary> getAllCommands() {	throw new MiniappCommandUnauthorizedException("Unavailable method");}
 
-	}
+	@Override
+	@Transactional(readOnly = true)
+	@Deprecated
+	public List<MiniAppCommandBoundary> getAllMiniAppCommands(String miniappName) {	throw new MiniappCommandUnauthorizedException("Unavailable method");}
 
 	@Override
 	@Transactional
-	public void deleteAll() {
-		this.miniappCommandCrud.deleteAll();
+	@Deprecated
+	public void deleteAll() {	throw new MiniappCommandUnauthorizedException("Unavailable method");	}
 
-	}
-	
 	private MiniAppCommandBoundary toBoundary(MiniappCommandEntity entity) {
 		MiniAppCommandBoundary boundary = new MiniAppCommandBoundary();
-		
+
 		boundary.setCommandId(new CommandId(entity.getCommandSuperApp(),
-											entity.getCommandMiniApp(),
-											entity.getCommandInternalId()));
+				entity.getCommandMiniApp(),
+				entity.getCommandInternalId()));
 		boundary.setCommand(entity.getCommand());
 		boundary.setCommandAttributes(entity.getCommandAttributes());
 		boundary.setInvocationTimestamp(entity.getInvocationTimestamp());
 		boundary.setTargetObject(new TargetObject(
-								 new ObjectId(entity.getTargetSuperapp(),
-										 	  entity.getTargetObjectId())));
+				new ObjectId(entity.getTargetSuperapp(),
+						entity.getTargetObjectId())));
 		boundary.setInvokedBy(new InvokedBy(new UserIdBoundary(entity.getInvokedByEmail(),entity.getInvokedBySuperapp())));
 		return boundary;
-		
+
 	}
-	
+
 	private MiniappCommandEntity toEntity(MiniAppCommandBoundary boundary) {
 		MiniappCommandEntity entity = new MiniappCommandEntity();
 
 		entity.setCommandId(giveAllId(boundary.getCommandId().getSuperapp(),
-									boundary.getCommandId().getMiniapp(),
-									boundary.getCommandId().getInternalCommandId()));
+				boundary.getCommandId().getMiniapp(),
+				boundary.getCommandId().getInternalCommandId()));
 
 		entity.setCommand(boundary.getCommand());
-
 
 		entity.setInvocationTimestamp(boundary.getInvocationTimestamp());
 		entity.setTargetObjectId(boundary.getTargetObject().getObjectId().getInternalObjectId());
 		entity.setTargetSuperapp(boundary.getTargetObject().getObjectId().getSuperapp());
-
 
 		entity.setInvokedByEmail(boundary.getInvokedBy().getUserId().getEmail());
 
@@ -126,11 +133,7 @@ public class MiniappCommandServiceDB implements MiniappCommandsService {
 
 		if (boundary.getCommandAttributes() != null)
 			entity.setCommandAttributes(boundary.getCommandAttributes());
-		// else, do nothing , there is already a treemap in constructor
-
-
 		return entity;
-
 	}
 
 	private void checkInputForNewCommand(MiniAppCommandBoundary boundary){
@@ -147,14 +150,111 @@ public class MiniappCommandServiceDB implements MiniappCommandsService {
 				|| boundary.getInvokedBy().getUserId() == null
 				|| boundary.getInvokedBy().getUserId().getEmail() == null
 				|| boundary.getInvokedBy().getUserId().getEmail().isBlank()
-				|| !boundary.getInvokedBy().getUserId().getEmail().matches("(^[a-zA-Z0-9]*[a-zA-Z][a-zA-Z0-9]*)@([a-zA-Z]+).com")
+				|| !boundary.getInvokedBy().getUserId().getEmail().matches("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$")
 				|| boundary.getInvokedBy().getUserId().getSuperapp() == null
 				|| boundary.getInvokedBy().getUserId().getSuperapp().isBlank())
 			throw new MiniappCommandBadRequestException("New command needs invoked identification, with user id including email and superapp name");
+		this.objectCrud.findByObjectIdAndActive(boundary.getTargetObject().getObjectId().giveAllId(),true).orElseThrow(() -> new SuperappObjectNotFoundException("No such object exists with this id"));
 	}
 
-	private String giveAllId(String superapp, String miniapp, String internalId){
-		return superapp+"/" + miniapp+"/" + internalId;
+	private String giveAllId(String superapp, String miniapp, String internalId){	return superapp+"/" + miniapp+"/" + internalId;	}
+
+	@Override
+	@Transactional
+	public Object invokeCommand(MiniAppCommandBoundary command, boolean async) {
+		// TODO: check ASYNC
+		command.getCommandId().setSuperapp(this.superapp);
+		this.checkInputForNewCommand(command);
+		UserRole userRole = this.userCrud.findById(command.getInvokedBy().getUserId().getSuperapp()+"/"+command.getInvokedBy().getUserId().getEmail())
+				.orElseThrow(() -> new UserNotFoundException("No such user exists with this id")).getRole();
+		if (userRole != UserRole.MINIAPP_USER)
+			throw new MiniappCommandUnauthorizedException("User Role not allowed for method");
+		command.setCommandId(new CommandId("SuperPetApp",command.getCommandId().getMiniapp(),UUID.randomUUID().toString()));
+		command.setInvocationTimestamp(new Date());
+		if (async){
+			try {
+				String json = this.jackson.writeValueAsString(command);
+				this.jmsTemplate
+						.convertAndSend("petcq", json);
+			}catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+		MiniappCommandEntity entity = this.toEntity(command);
+		miniappCommandCrud.save(entity);
+		command = this.toBoundary(entity);
+		return ConfigureCommand(command);
 	}
 
+	@JmsListener(destination = "petcq")
+	public void listenToCommand(String json){
+		try {
+			System.err.println("*** received: " + json);
+			MiniAppCommandBoundary theCommand = this.jackson
+					.readValue(json, MiniAppCommandBoundary.class);
+//			if (theCommand.getId() == null) {
+//				theCommand.setId(UUID.randomUUID().toString());
+//			}
+//			if (theCommand.getCreatedTimestamp() == null) {
+//				theCommand.setCreatedTimestamp(new Date());
+//			}
+//			if (theCommand.getType() == null) {
+//				theCommand.setType("OK");
+//			}
+
+			MiniappCommandEntity entity = this.toEntity(theCommand);
+			entity = this.miniappCommandCrud.save(entity);
+			System.err.println("*** saved: " + this.toBoundary(entity));
+		}catch (Exception e){
+			e.printStackTrace(System.err);
+		}
+	}
+
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<MiniAppCommandBoundary> getAllCommands(String superapp, String email, int size, int page) {
+		UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+				() -> new UserNotFoundException("could not find user to login by id: "
+						+ superapp +"/"+email)).getRole();
+		if (userRole != UserRole.ADMIN)
+			throw new SuperappObjectUnauthorizedException("User role is forbidden");
+
+		//TODO: pagination
+		List<MiniappCommandEntity> list = this.miniappCommandCrud.findAll();
+		return list
+				.stream()
+				.map(this::toBoundary)
+				.toList();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<MiniAppCommandBoundary> getAllMiniAppCommands(String miniappName, String superapp, String email, int size, int page) {
+
+		UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+				() -> new UserNotFoundException("could not find user to login by id: "
+						+ superapp +"/"+email)).getRole();
+		if (userRole != UserRole.ADMIN)
+			throw new SuperappObjectUnauthorizedException("User role is forbidden");
+
+		//TODO: pagination
+		List<MiniappCommandEntity> list = this.miniappCommandCrud.findAll();
+		return list
+				.stream()
+				.filter(t->t.getCommandMiniApp().equals(miniappName))
+				.map(this::toBoundary)
+				.toList();
+	}
+
+	@Override
+	@Transactional
+	public void deleteAll(String superapp, String email) {
+		UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+				() -> new UserNotFoundException("could not find user to login by id: "
+						+ superapp +"/"+email)).getRole();
+		if (userRole != UserRole.ADMIN)
+			throw new SuperappObjectUnauthorizedException("User role is forbidden");
+		this.miniappCommandCrud.deleteAll();
+	}
 }

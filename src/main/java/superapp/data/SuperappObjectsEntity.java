@@ -20,14 +20,16 @@ public class SuperappObjectsEntity {
     private String bySuperapp;
     private Map<String, Object> objectDetails;
 
-	@DBRef
-	private List<SuperappObjectsEntity> children;
+	@DBRef(lazy = true)
+	private Set<SuperappObjectsEntity> children;
 
-	//private List<SuperappObjectsEntity> parents; avoid redundancy
+	@DBRef(lazy = true)
+	private Set<SuperappObjectsEntity> parents;
 	
 	public SuperappObjectsEntity() {	
 		this.objectDetails = new TreeMap<>();
-		this.children = new ArrayList<>();
+		this.children = new HashSet<>();
+		this.parents = new HashSet<>();
 	}
 
 	public String getObjectId() {
@@ -113,33 +115,42 @@ public class SuperappObjectsEntity {
 		this.objectDetails = objectDetails;
 	}
 
-	public List<SuperappObjectsEntity> getChildren() {
+	public Set<SuperappObjectsEntity> getChildren() {
 		return children;
 	}
 
-	public void setChildren(List<SuperappObjectsEntity> children) {
+	public void setChildren(Set<SuperappObjectsEntity> children) {
 		this.children = children;
 	}
 
-//	public List<SuperappObjectsEntity> getParents() {
-//		return parents;
-//	}
-//
-//	public void setParents(List<SuperappObjectsEntity> parents) {
-//		this.parents = parents;
-//	} avoid redundancy
+	public Set<SuperappObjectsEntity> getParents() {
+		return parents;
+	}
+
+	public void setParents(Set<SuperappObjectsEntity> parents) {
+		this.parents = parents;
+	}
 
 	public void addChild(SuperappObjectsEntity child){
 		this.children.add(child);
 	}
-//	public void addParent(SuperappObjectsEntity child){
-//		this.children.add(child);
-//	} avoid redundancy
+	public void addParent(SuperappObjectsEntity parent){	this.parents.add(parent);}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(objectId);
+	}
 
 	@Override
 	public boolean equals(Object obj) {
-		SuperappObjectsEntity object = (SuperappObjectsEntity) obj;
-		return this.getObjectId().equals(object.getObjectId());
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+		SuperappObjectsEntity other = (SuperappObjectsEntity) obj;
+		return Objects.equals(objectId, other.objectId);
 	}
 
 	@Override

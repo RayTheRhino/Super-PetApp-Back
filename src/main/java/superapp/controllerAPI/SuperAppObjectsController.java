@@ -4,16 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import superapp.bounderies.ObjectBoundary;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import superapp.logic.ObjectsService;
+import superapp.logic.ImprovedObjectService;
 
 import java.util.List;
 
 @RestController
 public class SuperAppObjectsController {
 
-    private ObjectsService objectsService;
+    private ImprovedObjectService objectsService;
     @Autowired
-    public void setObjectsService(ObjectsService objectsService){
+    public void setObjectsService(ImprovedObjectService objectsService){
         this.objectsService = objectsService;
     }
     @RequestMapping(
@@ -40,7 +40,7 @@ public class SuperAppObjectsController {
             @RequestParam (name = "userSuperapp") String userSuperapp,
             @RequestParam (name = "userEmail") String email) {
 
-        objectsService.updateObject(superapp,InternalObjectId,input);//TODO: Update Functions
+        objectsService.updateObject(superapp,InternalObjectId,input);
     }
 
     @RequestMapping(
@@ -52,7 +52,7 @@ public class SuperAppObjectsController {
             @PathVariable("InternalObjectId") String InternalObjectId,
             @RequestParam (name = "userSuperapp") String userSuperapp,
             @RequestParam (name = "userEmail") String email) {
-            return objectsService.getSpecificObject(superapp,InternalObjectId); //TODO: Update Functions
+            return objectsService.getSpecificObject(superapp,InternalObjectId);
     }
 
     @RequestMapping(
@@ -65,7 +65,8 @@ public class SuperAppObjectsController {
             @RequestParam (name = "userEmail") String email,
             @RequestParam (name = "size", required = false, defaultValue = "10") int size,
             @RequestParam (name = "page", required = false, defaultValue = "0") int page) {
-        return objectsService.getSpecificObjectsByType(superapp,InternalObjectId); // TODO: create the new get functions
+        List<ObjectBoundary> rv = objectsService.getObjectsByType(type, superapp, email, size, page);
+        return rv.toArray(new ObjectBoundary[0]);
     }
 
     @RequestMapping(
@@ -78,23 +79,26 @@ public class SuperAppObjectsController {
             @RequestParam (name = "userEmail") String email,
             @RequestParam (name = "size", required = false, defaultValue = "10") int size,
             @RequestParam (name = "page", required = false, defaultValue = "0") int page){
-    return objectsService.getSpecificObjectsByAlias(superapp,email); // TODO: create the new get functions
+        List<ObjectBoundary> rv = objectsService.getObjectsByAlias(alias, superapp, email, size, page);
+        return rv.toArray(new ObjectBoundary[0]);
     }
-    @RequestMapping(
-            path = {"/superapp/objects/search/byLocation/{lat}/{lng}/{distance}"},
-            method = {RequestMethod.GET},
-            produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ObjectBoundary[] retrieveObject(
-            @PathVariable("lat") double lat,
-            @PathVariable("lng") double lng,
-            @PathVariable("distance") double distance,
-            @RequestParam (name = "units", required = false, defaultValue = "NEUTRAL") String distanceUnits,
-            @RequestParam (name = "userSuperapp") String superapp,
-            @RequestParam (name = "userEmail") String email,
-            @RequestParam (name = "size", required = false, defaultValue = "10") int size,
-            @RequestParam (name = "page", required = false, defaultValue = "0") int page){
-    return objectsService.getSpecificObjectsByLocation(superapp,InternalObjectId);// TODO: create the new get functions
-    }
+//    @RequestMapping(
+//            path = {"/superapp/objects/search/byLocation/{lat}/{lng}/{distance}"},
+//            method = {RequestMethod.GET},
+//            produces = {MediaType.APPLICATION_JSON_VALUE})
+//    public ObjectBoundary[] retrieveObject(
+//            @PathVariable("lat") double lat,
+//            @PathVariable("lng") double lng,
+//            @PathVariable("distance") double distance,
+//            @RequestParam (name = "userSuperapp") String superapp,
+//            @RequestParam (name = "userEmail") String email,
+//            @RequestParam (name = "units", required = false, defaultValue = "NEUTRAL") String distanceUnits,
+//            @RequestParam (name = "size", required = false, defaultValue = "10") int size,
+//            @RequestParam (name = "page", required = false, defaultValue = "0") int page){
+//
+//        List<ObjectBoundary> rv = objectsService.getObjectsByLocation(lat,lng,distance,superapp,email,distanceUnits,size,page);// TODO: create the new get functions
+//        return rv.toArray(new ObjectBoundary[0]);
+//    }
 
     @RequestMapping(
             path = {"/superapp/objects"},
@@ -106,7 +110,7 @@ public class SuperAppObjectsController {
             @RequestParam (name = "size", required = false, defaultValue = "10") int size,
             @RequestParam (name = "page", required = false, defaultValue = "0") int page
     ){
-        List<ObjectBoundary> allObjects = objectsService.getAllObjects(); //TODO: Update Functions
+        List<ObjectBoundary> allObjects = objectsService.getAllObjects(userSuperapp,email,size,page);
         return allObjects.toArray(new ObjectBoundary[0]);
 
     }

@@ -23,7 +23,7 @@ public class UserController {
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public UserBoundary createNewUser (@RequestBody NewUserBoundary input) {
 
-        UserBoundary user = new UserBoundary(input, "SuperPetApp");
+        UserBoundary user = new UserBoundary(input);
         return usersService.createUser(user);
     }
 
