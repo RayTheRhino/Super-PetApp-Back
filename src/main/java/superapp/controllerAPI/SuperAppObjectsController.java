@@ -40,7 +40,7 @@ public class SuperAppObjectsController {
             @RequestParam (name = "userSuperapp") String userSuperapp,
             @RequestParam (name = "userEmail") String email) {
 
-        objectsService.updateObject(superapp,InternalObjectId,input);
+        objectsService.updateObject(superapp,InternalObjectId,input,userSuperapp,email);
     }
 
     @RequestMapping(
@@ -52,7 +52,7 @@ public class SuperAppObjectsController {
             @PathVariable("InternalObjectId") String InternalObjectId,
             @RequestParam (name = "userSuperapp") String userSuperapp,
             @RequestParam (name = "userEmail") String email) {
-            return objectsService.getSpecificObject(superapp,InternalObjectId);
+            return objectsService.getSpecificObject(superapp,InternalObjectId,userSuperapp,email);
     }
 
     @RequestMapping(

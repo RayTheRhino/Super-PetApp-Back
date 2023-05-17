@@ -249,7 +249,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
     @Override
     @Transactional
     public ObjectBoundary updateObject(String objectSuperApp, String internalObjectId, ObjectBoundary update,
-                                       String userSuperapp, String email) {
+                                       String userSuperapp, String email ) {
         UserRole userRole = this.userCrud.findById(objectSuperApp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + userSuperapp+"/"+email)).getRole();
@@ -371,7 +371,8 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
 
     @Override
     @Transactional(readOnly = true)
-    public ObjectBoundary getSpecificObject(String objectSuperApp, String internalObjectId, String userSuperapp, String email) {
+    public ObjectBoundary getSpecificObject(String objectSuperApp, String internalObjectId,
+                                            String userSuperapp, String email) {
         UserRole userRole = this.userCrud.findById(userSuperapp + "/" + email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + userSuperapp + "/" + email)).getRole();
