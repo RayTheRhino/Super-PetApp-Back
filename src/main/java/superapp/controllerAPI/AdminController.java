@@ -1,37 +1,33 @@
 package superapp.controllerAPI;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import superapp.bounderies.MiniAppCommandBoundary;
 import superapp.bounderies.UserBoundary;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-import superapp.logic.MiniappCommandsService;
-import superapp.logic.ObjectsService;
-import superapp.logic.UsersService;
+import superapp.logic.ImprovedMiniappCommandService;
+import superapp.logic.ImprovedObjectService;
+import superapp.logic.ImprovedUsersService;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
 @RestController
 public class AdminController {
-    private UsersService usersService;
-    private ObjectsService objectsService;
-    private MiniappCommandsService miniappCommandsService;
+    private ImprovedUsersService usersService;
+    private ImprovedObjectService objectsService;
+    private ImprovedMiniappCommandService miniappCommandsService;
 
     @Autowired
-    public void setUsersService(UsersService usersService){
+    public void setUsersService(ImprovedUsersService usersService){
         this.usersService = usersService;
     }
     @Autowired
-    public void setObjectsService(ObjectsService objectsService){
+    public void setObjectsService(ImprovedObjectService objectsService){
         this.objectsService = objectsService;
     }
     @Autowired
-    public void setMiniappCommandsService(MiniappCommandsService miniappCommandsService){
+    public void setMiniappCommandsService(ImprovedMiniappCommandService miniappCommandsService){
         this.miniappCommandsService = miniappCommandsService;
     }
 
@@ -39,30 +35,43 @@ public class AdminController {
     @RequestMapping(
             path = {"/superapp/admin/users"},
             method = {RequestMethod.DELETE})
-    public void deleteAllUsersInApp(){
-        usersService.deleteAllUsers();
+    public void deleteAllUsersInApp(
+            @RequestParam(name = "userSuperapp") String superapp,
+            @RequestParam (name = "userEmail") String email){
+        usersService.deleteAllUsers(superapp, email);
     }
 
     @RequestMapping(
             path = {"/superapp/admin/objects"},
             method = {RequestMethod.DELETE})
-    public void deleteAllObjectsInApp (){
-        objectsService.deleteAllObjects();
+    public void deleteAllObjectsInApp (
+            @RequestParam (name = "userSuperapp") String superapp,
+            @RequestParam (name = "userEmail") String email
+    ){
+        objectsService.deleteAllObjects(superapp, email);
     }
 
     @RequestMapping(
             path = {"/superapp/admin/miniapp"},
             method = {RequestMethod.DELETE})
-    public void deleteAllCommandsHistory(){
-        miniappCommandsService.deleteAll();
+    public void deleteAllCommandsHistory(
+            @RequestParam (name = "userSuperapp") String superapp,
+            @RequestParam (name = "userEmail") String email
+    ){
+        miniappCommandsService.deleteAll(superapp, email);
     }
 
     @RequestMapping(
             path = {"/superapp/admin/users"},
             method = {RequestMethod.GET},
             produces = {MediaType.APPLICATION_JSON_VALUE})
-    public UserBoundary[] getAllUsers (){
-        List<UserBoundary> allUsers = usersService.getAllUsers();
+    public UserBoundary[] getAllUsers (
+            @RequestParam (name = "userSuperapp") String superapp,
+            @RequestParam (name = "userEmail") String email,
+            @RequestParam (name = "size", required = false, defaultValue = "10") int size,
+            @RequestParam (name = "page", required = false, defaultValue = "0") int page
+    ){
+        List<UserBoundary> allUsers = usersService.getAllUsers(superapp, email, size, page);
         return allUsers.toArray(new UserBoundary[0]);
     }
 
@@ -70,8 +79,13 @@ public class AdminController {
             path = {"/superapp/admin/miniapp"},
             method = {RequestMethod.GET},
             produces = {MediaType.APPLICATION_JSON_VALUE})
-    public MiniAppCommandBoundary[] exportAllMiniAppCommands (){
-        List<MiniAppCommandBoundary> allMiniAppcommands = miniappCommandsService.getAllCommands();
+    public MiniAppCommandBoundary[] exportAllMiniAppCommands (
+            @RequestParam (name = "userSuperapp") String superapp,
+            @RequestParam (name = "userEmail") String email,
+            @RequestParam (name = "size", required = false, defaultValue = "10") int size,
+            @RequestParam (name = "page", required = false, defaultValue = "0") int page
+    ){
+        List<MiniAppCommandBoundary> allMiniAppcommands = miniappCommandsService.getAllCommands(superapp, email, size, page);
         return allMiniAppcommands.toArray(new MiniAppCommandBoundary[0]);
     }
 
@@ -79,8 +93,14 @@ public class AdminController {
             path = {"/superapp/admin/miniapp/{miniAppName}"},
             method = {RequestMethod.GET},
             produces = {MediaType.APPLICATION_JSON_VALUE})
-    public MiniAppCommandBoundary[] exportCommandsHistoryOfspecificMiniApp (@PathVariable("miniAppName") String miniAppName){
-        List<MiniAppCommandBoundary> specificMiniAppcommands = miniappCommandsService.getAllMiniAppCommands(miniAppName);
+    public MiniAppCommandBoundary[] exportCommandsHistoryOfspecificMiniApp (
+            @PathVariable("miniAppName") String miniAppName,
+            @RequestParam (name = "userSuperapp") String superapp,
+            @RequestParam (name = "userEmail") String email,
+            @RequestParam (name = "size", required = false, defaultValue = "10") int size,
+            @RequestParam (name = "page", required = false, defaultValue = "0") int page){
+        List<MiniAppCommandBoundary> specificMiniAppcommands = miniappCommandsService.getAllMiniAppCommands(
+                                                            miniAppName, superapp, email, size, page);
         return specificMiniAppcommands.toArray(new MiniAppCommandBoundary[0]);
 
     }

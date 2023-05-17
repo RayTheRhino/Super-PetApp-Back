@@ -4,13 +4,13 @@ public class NewUserBoundary{
 
     private String email;
     private String role;
-    private String userName;
+    private String username;
     private String avatar;
 
     public NewUserBoundary( String email, String role, String userName, String avatar) {
         this.email = email;
         this.role = role;
-        this.userName = userName;
+        this.username = userName;
         this.avatar = avatar;
     }
 
@@ -32,12 +32,12 @@ public class NewUserBoundary{
         this.role = role;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUsername() {
+        return username;
     }
 
     public void setUsername(String username) {
-        this.userName = username;
+        this.username = username;
     }
 
     public String getAvatar() {
@@ -53,7 +53,7 @@ public class NewUserBoundary{
         return "NewUserBoundary{" +
                 "email='" + email + '\'' +
                 ",\nrole='" + role + '\'' +
-                ",\nuserName='" + userName + '\'' +
+                ",\nuserName='" + username + '\'' +
                 ",\navatar='" + avatar + '\'' +
                 '}';
     }

@@ -1,24 +1,21 @@
 package superapp.controllerAPI;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import superapp.bounderies.CommandId;
 import superapp.bounderies.MiniAppCommandBoundary;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-import superapp.logic.MiniappCommandsService;
+import superapp.logic.ImprovedMiniappCommandService;
+
 
 
 
 @RestController
 public class MiniAppCommandController {
-    private MiniappCommandsService miniappCommandsService;
+    private ImprovedMiniappCommandService miniappCommandsService;
 
     @Autowired
-    public void setMiniappCommandsService(MiniappCommandsService miniappCommandsService){
+    public void setMiniappCommandsService(ImprovedMiniappCommandService miniappCommandsService){
         this.miniappCommandsService = miniappCommandsService;
     }
     @RequestMapping(
@@ -28,10 +25,11 @@ public class MiniAppCommandController {
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public Object invokeMiniApp (
             @PathVariable("miniAppName") String miniAppName,
-            @RequestBody MiniAppCommandBoundary miniAppCommandBoundary) {
+            @RequestBody MiniAppCommandBoundary miniAppCommandBoundary,
+            @RequestParam (name = "async", required = false, defaultValue = "false") boolean async) {
 
-        miniAppCommandBoundary.setCommandId(new CommandId("SuperPetApp", miniAppName, ""));
-        return miniappCommandsService.invokeCommand(miniAppCommandBoundary);
+        miniAppCommandBoundary.setCommandId(new CommandId(miniAppName));
+        return miniappCommandsService.invokeCommand(miniAppCommandBoundary, async);
     }
 
 }

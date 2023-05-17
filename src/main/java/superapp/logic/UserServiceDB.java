@@ -3,6 +3,7 @@ package superapp.logic;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import superapp.bounderies.UserBoundary;
@@ -13,17 +14,22 @@ import superapp.dataAccess.UserCrud;
 
 
 @Service
-public class UserServiceDB implements UsersService {
+public class UserServiceDB implements ImprovedUsersService {
 	private UserCrud userCrud;
+	private String superapp;
+
+	@Value("${spring.application.name}")
+	public void setSuperapp(String superapp){this.superapp = superapp;}
 
 	@Autowired
 	public void setUserCrud(UserCrud userCrud) {
 		this.userCrud = userCrud;
 	}
-		
+
 	@Override
 	@Transactional
 	public UserBoundary createUser(UserBoundary user) {
+		user.getUserId().setSuperapp(this.superapp);
 		checkInputForNewUser(user);
 		UserEntity entity = this.toEntity(user);
 		entity = this.userCrud.save(entity);
@@ -46,15 +52,15 @@ public class UserServiceDB implements UsersService {
 							  () -> new UserNotFoundException("could not find user to update by id: "
 							  + userSuperApp+"/"+userEmail));
 		if(update.getRole()!=null){
-			if (this.toEntityAsEnum(update.getRole()) != null)
+			if (this.toEntityAsEnum(update.getRole()) == null)
 				throw new UserBadRequestException("Incorrect user role");
 			existing.setRole(this.toEntityAsEnum(update.getRole()));
 		}
-		if(update.getAvatar()!=null){
+		if(update.getAvatar()!=null && !update.getAvatar().isBlank()){
 			existing.setAvatar(update.getAvatar());
 		}
-		if(update.getUserName()!=null){
-			existing.setUserName(update.getUserName());
+		if(update.getUsername()!=null && !update.getUsername().isBlank()){
+			existing.setUsername(update.getUsername());
 		}
 		existing = userCrud.save(existing);
 		return this.toBoundary(existing);
@@ -62,8 +68,69 @@ public class UserServiceDB implements UsersService {
 
 	@Override
 	@Transactional
-	public List<UserBoundary> getAllUsers() {
+	@Deprecated
+	public List<UserBoundary> getAllUsers() { throw new UserGoneException("Unavailable method");	}
+
+	@Override
+	@Transactional
+	@Deprecated
+	public void deleteAllUsers() { throw new UserGoneException("Unavailable method");}
+	private UserRole toEntityAsEnum (String value) {
+		if (value != null) {
+			for (UserRole role : UserRole.values())
+				if (value.equals(role.name()))
+					return UserRole.valueOf(value);
+		}
+		return null;
+	}
+	private UserBoundary toBoundary(UserEntity entity) {
+		UserBoundary boundary = new UserBoundary();
+		boundary.setUserId(new UserIdBoundary(entity.getEmail(),entity.getSuperApp()));
+		boundary.setRole(entity.getRole().name());
+		boundary.setAvatar(entity.getAvatar());
+		boundary.setUsername(entity.getUsername());
+		return boundary;
+
+	}
+
+	private UserEntity toEntity(UserBoundary boundary) {
+
+		UserEntity entity = new UserEntity();
+		entity.setUserId(boundary.getUserId().getSuperapp()+"/"+boundary.getUserId().getEmail());
+		entity.setUsername(boundary.getUsername());
+		entity.setAvatar(boundary.getAvatar());
+		entity.setRole(toEntityAsEnum(boundary.getRole()));
+
+		return entity;
+
+	}
+
+	private String giveAllId(String superapp, String email){return superapp+"/"+email;}
+
+	private void checkInputForNewUser(UserBoundary user){
+		if (this.userCrud.findById(user.getUserId().getSuperapp()+"/"+user.getUserId().getEmail()).isPresent())
+			throw new UserBadRequestException("User already Exists");
+		if (!(user.getUserId().getEmail()).matches("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"))
+			throw new UserBadRequestException("New User Email is incorrect");
+		if (user.getUsername() == null || user.getUsername().isBlank()
+				|| user.getAvatar() == null || user.getAvatar().isBlank())
+			throw new UserBadRequestException("Need to input an username and an avatar for new user");
+		if(user.getRole()!=null && this.toEntityAsEnum(user.getRole()) == null)
+			throw new UserBadRequestException("Incorrect user role");
+	}
+
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<UserBoundary> getAllUsers(String superapp, String email, int size, int page) {
+
+		UserRole userRole = this.userCrud.findById(giveAllId(superapp,email)).orElseThrow(
+				() -> new UserNotFoundException("could not find user to login by id: "
+						+ superapp+"/"+email)).getRole();
+		if (userRole != UserRole.ADMIN)
+			throw new UserUnauthorizedException("User Role is not allowed");
 		List<UserEntity> list = this.userCrud.findAll();
+		//TODO: pagination
 		return list
 				.stream()
 				.map(this::toBoundary)
@@ -72,59 +139,12 @@ public class UserServiceDB implements UsersService {
 
 	@Override
 	@Transactional
-	public void deleteAllUsers() {
+	public void deleteAllUsers(String superapp, String email) {
+		UserRole userRole = this.userCrud.findById(giveAllId(superapp,email)).orElseThrow(
+				() -> new UserNotFoundException("could not find user to login by id: "
+						+ superapp+"/"+email)).getRole();
+		if (userRole != UserRole.ADMIN)
+			throw new UserUnauthorizedException("User Role is not allowed");
 		this.userCrud.deleteAll();
-
 	}
-	private UserRole toEntityAsEnum (String value) {
-		if (value != null) {
-			return UserRole.valueOf(value);
-		}else {
-			return null;
-		}
-	}
-	private UserBoundary toBoundary(UserEntity entity) {
-		UserBoundary boundary = new UserBoundary();
-		boundary.setUserId(new UserIdBoundary(entity.getEmail(),entity.getSuperApp()));
-		boundary.setRole(entity.getRole().name());
-		boundary.setAvatar(entity.getAvatar());
-		boundary.setUserName(entity.getUserName());
-		return boundary;
-
-	}
-
-	private UserEntity toEntity(UserBoundary boundary) {
-
-		UserEntity entity = new UserEntity();
-
-		entity.setUserId(boundary.getUserId().getSuperapp()+"/"+boundary.getUserId().getEmail());
-
-		entity.setUserName(boundary.getUserName());
-
-		entity.setAvatar(boundary.getAvatar());
-
-		entity.setRole(toEntityAsEnum(boundary.getRole()));
-
-
-		return entity;
-
-	}
-
-	private String giveAllId(String superapp, String email){
-		return superapp+"/"+email;
-	}
-
-	private void checkInputForNewUser(UserBoundary user){
-		if (this.userCrud.findById(user.getUserId().getSuperapp()+"/"+user.getUserId().getEmail()).isPresent())
-			throw new UserBadRequestException("User already Exists");
-		if (!(user.getUserId().getEmail()).matches("(^[a-zA-Z0-9]*)@([a-zA-Z]*).com"))
-			throw new UserBadRequestException("New User Email is incorrect");
-		if (user.getUserName() == null || user.getUserName().isBlank()
-				|| user.getAvatar() == null || user.getAvatar().isBlank())
-			throw new UserBadRequestException("Need to input an username and an avatar for new user");
-		if(user.getRole()!=null && this.toEntityAsEnum(user.getRole()) == null)
-			throw new UserBadRequestException("Incorrect user role");
-	}
-
-
 }

@@ -10,9 +10,13 @@ public class CommandId {
         this.miniapp = miniapp;
         this.internalCommandId = internalCommandId;
     }
-
-    public CommandId() {
+    public CommandId(String miniapp, String internalCommandId) {
+        this.miniapp = miniapp;
+        this.internalCommandId = internalCommandId;
     }
+    public CommandId(String miniapp) { this.miniapp = miniapp;}
+
+    public CommandId() {   }
 
     public String getSuperapp() {
         return superapp;
