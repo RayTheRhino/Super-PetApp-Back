@@ -119,9 +119,7 @@ public class SuperappObjectsEntity {
 		return children;
 	}
 
-	public void setChildren(Set<SuperappObjectsEntity> children) {
-		this.children = children;
-	}
+	public void setChildren(Set<SuperappObjectsEntity> children) {	this.children = children;	}
 
 	public Set<SuperappObjectsEntity> getParents() {
 		return parents;
