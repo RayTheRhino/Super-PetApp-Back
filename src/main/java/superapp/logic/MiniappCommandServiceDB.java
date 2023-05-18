@@ -46,6 +46,7 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 
 	@Autowired
 	public void setObjectCrud(ObjectCrud objectCrud) {this.objectCrud = objectCrud;}
+
 	@Autowired
 	public void setUserCrud(UserCrud userCrud) {this.userCrud = userCrud;}
 
@@ -85,17 +86,21 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	@Override
 	@Transactional(readOnly = true)
 	@Deprecated
-	public List<MiniAppCommandBoundary> getAllCommands() {	throw new MiniappCommandUnauthorizedException("Unavailable method");}
+	public List<MiniAppCommandBoundary> getAllCommands() {
+		throw new MiniappCommandUnauthorizedException("Unavailable method");}
 
 	@Override
 	@Transactional(readOnly = true)
 	@Deprecated
-	public List<MiniAppCommandBoundary> getAllMiniAppCommands(String miniappName) {	throw new MiniappCommandUnauthorizedException("Unavailable method");}
+	public List<MiniAppCommandBoundary> getAllMiniAppCommands(String miniappName) {
+		throw new MiniappCommandUnauthorizedException("Unavailable method");}
 
 	@Override
 	@Transactional
 	@Deprecated
-	public void deleteAll() {	throw new MiniappCommandUnauthorizedException("Unavailable method");	}
+	public void deleteAll() {
+		throw new MiniappCommandUnauthorizedException("Unavailable method");
+	}
 
 	private MiniAppCommandBoundary toBoundary(MiniappCommandEntity entity) {
 		MiniAppCommandBoundary boundary = new MiniAppCommandBoundary();
@@ -154,23 +159,26 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 				|| boundary.getInvokedBy().getUserId().getSuperapp() == null
 				|| boundary.getInvokedBy().getUserId().getSuperapp().isBlank())
 			throw new MiniappCommandBadRequestException("New command needs invoked identification, with user id including email and superapp name");
-		this.objectCrud.findByObjectIdAndActive(boundary.getTargetObject().getObjectId().giveAllId(),true).orElseThrow(() -> new SuperappObjectNotFoundException("No such object exists with this id"));
+		this.objectCrud.findByObjectIdAndActive(boundary.getTargetObject().getObjectId().giveAllId(),true).orElseThrow(()
+				-> new SuperappObjectNotFoundException("No such object exists with this id"));
 	}
 
-	private String giveAllId(String superapp, String miniapp, String internalId){	return superapp+"/" + miniapp+"/" + internalId;	}
+	private String giveAllId(String superapp, String miniapp, String internalId){
+		return superapp+"/" + miniapp+"/" + internalId;
+	}
 
 	@Override
 	@Transactional
 	public Object invokeCommand(MiniAppCommandBoundary command, boolean async) {
 		// TODO: check ASYNC
-		command.getCommandId().setSuperapp(this.superapp);
 		this.checkInputForNewCommand(command);
 		UserRole userRole = this.userCrud.findById(command.getInvokedBy().getUserId().getSuperapp()+"/"+command.getInvokedBy().getUserId().getEmail())
 				.orElseThrow(() -> new UserNotFoundException("No such user exists with this id")).getRole();
 		if (userRole != UserRole.MINIAPP_USER)
 			throw new MiniappCommandUnauthorizedException("User Role not allowed for method");
-		command.setCommandId(new CommandId("SuperPetApp",command.getCommandId().getMiniapp(),UUID.randomUUID().toString()));
+		command.setCommandId(new CommandId(this.superapp,command.getCommandId().getMiniapp(),UUID.randomUUID().toString()));
 		command.setInvocationTimestamp(new Date());
+
 		if (async){
 			try {
 				String json = this.jackson.writeValueAsString(command);
@@ -180,31 +188,20 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 				throw new RuntimeException(e);
 			}
 		}
-		MiniappCommandEntity entity = this.toEntity(command);
-		miniappCommandCrud.save(entity);
-		command = this.toBoundary(entity);
+		else {
+			MiniappCommandEntity entity = this.toEntity(command);
+			miniappCommandCrud.save(entity);
+		}
 		return ConfigureCommand(command);
 	}
 
 	@JmsListener(destination = "petcq")
 	public void listenToCommand(String json){
 		try {
-			System.err.println("*** received: " + json);
 			MiniAppCommandBoundary theCommand = this.jackson
 					.readValue(json, MiniAppCommandBoundary.class);
-//			if (theCommand.getId() == null) {
-//				theCommand.setId(UUID.randomUUID().toString());
-//			}
-//			if (theCommand.getCreatedTimestamp() == null) {
-//				theCommand.setCreatedTimestamp(new Date());
-//			}
-//			if (theCommand.getType() == null) {
-//				theCommand.setType("OK");
-//			}
-
 			MiniappCommandEntity entity = this.toEntity(theCommand);
-			entity = this.miniappCommandCrud.save(entity);
-			System.err.println("*** saved: " + this.toBoundary(entity));
+			this.miniappCommandCrud.save(entity);
 		}catch (Exception e){
 			e.printStackTrace(System.err);
 		}

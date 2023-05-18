@@ -34,14 +34,13 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
     @Override
     @Transactional
     public ObjectBoundary CreateObject(ObjectBoundary object) {
-        object.getObjectId().setSuperapp(this.superapp);
         checkInputForNewObject(object);
         UserRole userRole = this.userCrud.findById(object.getCreatedBy().getUserId().getSuperapp()+"/"+
                 object.getCreatedBy().getUserId().getEmail()).orElseThrow(() -> new UserNotFoundException("could not find user by id")).getRole();
 
         if (userRole != UserRole.SUPERAPP_USER)
             throw new SuperappObjectUnauthorizedException("User Role is not allowed");
-        object.setObjectId(new ObjectId(UUID.randomUUID().toString()));
+        object.setObjectId(new ObjectId(this.superapp,UUID.randomUUID().toString()));
         object.setCreationTimestamp(new Date());
         SuperappObjectsEntity entity = this.toEntity(object);
         objectCrud.save(entity);
@@ -242,7 +241,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
                 || !boundary.getCreatedBy().getUserId().getEmail().matches("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$")
                 || boundary.getCreatedBy().getUserId().getSuperapp() == null
                 || boundary.getCreatedBy().getUserId().getSuperapp().isBlank())
-            throw new SuperappObjectBadRequestException("Need to input the alias and type of object");
+            throw new SuperappObjectBadRequestException("Need to input the user details correctly");
 
     }
 
