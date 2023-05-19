@@ -4,6 +4,8 @@ import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import superapp.bounderies.UserBoundary;
@@ -129,9 +131,7 @@ public class UserServiceDB implements ImprovedUsersService {
 						+ superapp+"/"+email)).getRole();
 		if (userRole != UserRole.ADMIN)
 			throw new UserUnauthorizedException("User Role is not allowed");
-		List<UserEntity> list = this.userCrud.findAll();
-		//TODO: pagination
-		return list
+		return this.userCrud.findAll(PageRequest.of(page, size, Direction.DESC, "username","userId"))
 				.stream()
 				.map(this::toBoundary)
 				.toList();

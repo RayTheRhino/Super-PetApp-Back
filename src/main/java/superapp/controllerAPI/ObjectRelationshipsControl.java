@@ -6,16 +6,17 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import superapp.bounderies.ObjectBoundary;
 import superapp.bounderies.ObjectId;
+import superapp.logic.ImprovedObjectService;
 import superapp.logic.ObjectServiceWithBindingFunctionality;
 
 import java.util.List;
 
 @RestController
 public class ObjectRelationshipsControl {
-    private ObjectServiceWithBindingFunctionality objectServiceWBind;
+    private ImprovedObjectService objectServiceWBind;
 
     @Autowired
-    public void setObjectServiceWBind(ObjectServiceWithBindingFunctionality objectServiceWBind){
+    public void setObjectServiceWBind(ImprovedObjectService objectServiceWBind){
         this.objectServiceWBind = objectServiceWBind;
     }
 

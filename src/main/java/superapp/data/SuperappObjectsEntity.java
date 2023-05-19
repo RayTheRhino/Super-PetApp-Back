@@ -3,6 +3,9 @@ package superapp.data;
 import java.util.*;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.geo.Point;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -14,8 +17,8 @@ public class SuperappObjectsEntity {
     private String alias;
     private boolean active;
     private Date creationTimestamp;
-    private double lat;
-    private double lng;
+	@GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
+	private Point location;
     private String byEmail;
     private String bySuperapp;
     private Map<String, Object> objectDetails;
@@ -76,20 +79,18 @@ public class SuperappObjectsEntity {
 	}
 
 	public double getLat() {
-		return lat;
+		return this.location.getY();
 	}
 
-	public void setLat(double lat) {
-		this.lat = lat;
-	}
+	public Point getLocation() {return location;}
+
+	public void setLocation(double lng,double lat) {	this.location = new Point(lng,lat);	}
+
 
 	public double getLng() {
-		return lng;
+		return this.location.getX();
 	}
 
-	public void setLng(double lng) {
-		this.lng = lng;
-	}
 
 	public String getByEmail() {
 		return byEmail;
@@ -155,7 +156,7 @@ public class SuperappObjectsEntity {
 	public String toString() {
 		return "SuperappObjectsEntity [objectId=" + objectId + ", type="
 				+ type + ", alias=" + alias + ", active=" + active + ", creationTimestamp=" + creationTimestamp
-				+ ", lat=" + lat + ", lng=" + lng + ", createdBy=" + byEmail + bySuperapp + ", objectDetails=" + objectDetails
+				+ ", location= " + location + ", createdBy=" + byEmail + bySuperapp + ", objectDetails=" + objectDetails
 				+ "]";
 	}
 
