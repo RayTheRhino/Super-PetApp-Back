@@ -82,23 +82,23 @@ public class SuperAppObjectsController {
         List<ObjectBoundary> rv = objectsService.getObjectsByAlias(alias, superapp, email, size, page);
         return rv.toArray(new ObjectBoundary[0]);
     }
-//    @RequestMapping(
-//            path = {"/superapp/objects/search/byLocation/{lat}/{lng}/{distance}"},
-//            method = {RequestMethod.GET},
-//            produces = {MediaType.APPLICATION_JSON_VALUE})
-//    public ObjectBoundary[] retrieveObject(
-//            @PathVariable("lat") double lat,
-//            @PathVariable("lng") double lng,
-//            @PathVariable("distance") double distance,
-//            @RequestParam (name = "userSuperapp") String superapp,
-//            @RequestParam (name = "userEmail") String email,
-//            @RequestParam (name = "units", required = false, defaultValue = "NEUTRAL") String distanceUnits,
-//            @RequestParam (name = "size", required = false, defaultValue = "10") int size,
-//            @RequestParam (name = "page", required = false, defaultValue = "0") int page){
-//
-//        List<ObjectBoundary> rv = objectsService.getObjectsByLocation(lat,lng,distance,superapp,email,distanceUnits,size,page);// TODO: create the new get functions
-//        return rv.toArray(new ObjectBoundary[0]);
-//    }
+    @RequestMapping(
+            path = {"/superapp/objects/search/byLocation/{lat}/{lng}/{distance}"},
+            method = {RequestMethod.GET},
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ObjectBoundary[] retrieveObject(
+            @PathVariable("lat") double lat,
+            @PathVariable("lng") double lng,
+            @PathVariable("distance") double distance,
+            @RequestParam (name = "userSuperapp") String superapp,
+            @RequestParam (name = "userEmail") String email,
+            @RequestParam (name = "units", required = false, defaultValue = "NEUTRAL") String distanceUnits,
+            @RequestParam (name = "size", required = false, defaultValue = "10") int size,
+            @RequestParam (name = "page", required = false, defaultValue = "0") int page){
+
+        List<ObjectBoundary> rv = objectsService.getObjectsByLocation(lat,lng,Math.abs(distance),superapp,email,distanceUnits,size,page);// TODO: create the new get functions
+        return rv.toArray(new ObjectBoundary[0]);
+    }
 
     @RequestMapping(
             path = {"/superapp/objects"},

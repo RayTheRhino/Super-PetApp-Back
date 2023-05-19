@@ -4,6 +4,11 @@ import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Metrics;
+import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +23,7 @@ import superapp.dataAccess.ObjectCrud;
 import superapp.dataAccess.UserCrud;
 
 @Service
-public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
+public class ObjectsServiceDB implements ImprovedObjectService {
     private ObjectCrud objectCrud;
     private UserCrud userCrud;
     private String superapp;
@@ -71,6 +76,25 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
     @Deprecated
     public void deleteAllObjects() { throw new SuperappObjectGoneException("Unavailable method");   }
 
+
+    @Override
+    @Deprecated
+    public void ObjectBindingChild(ObjectId parentId, ObjectId childId) {
+        throw new SuperappObjectGoneException("Unavailable method");
+    }
+
+    @Override
+    @Deprecated
+    public List<ObjectBoundary> getChildren(String superapp, String internalObjectId) {
+        throw new SuperappObjectGoneException("Unavailable method");
+    }
+
+    @Override
+    @Deprecated
+    public List<ObjectBoundary> getParents(String superapp, String internalObjectId) {
+        throw new SuperappObjectGoneException("Unavailable method");
+    }
+
     private ObjectBoundary toBoundary(SuperappObjectsEntity entity) {
         ObjectBoundary boundary = new ObjectBoundary();
 
@@ -99,15 +123,14 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
         else
             entity.setActive(false);
         entity.setCreationTimestamp(boundary.getCreationTimestamp());
-        if (boundary.getLocation() != null && boundary.getLocation().getLat() != null)
-            entity.setLat(boundary.getLocation().getLat());
-        else
-            entity.setLat(0.0);
-        if (boundary.getLocation() != null && boundary.getLocation().getLng() != null)
-            entity.setLng(boundary.getLocation().getLng());
-        else
-            entity.setLng(0.0);
-
+        double lat = 0.0, lng = 0.0;
+        if (boundary.getLocation() != null) {
+            if (boundary.getLocation().getLat() != null)
+                lat = boundary.getLocation().getLat();
+            if (boundary.getLocation().getLng() != null)
+                lng = boundary.getLocation().getLng();
+        }
+        entity.setLocation(lng,lat);
         entity.setByEmail(boundary.getCreatedBy().getUserId().getEmail());
 
         entity.setBySuperapp(boundary.getCreatedBy().getUserId().getSuperapp());
@@ -121,7 +144,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
 
     @Override
     @Transactional
-    public void ObjectBindingChild(ObjectId parentId, ObjectId childId, String userSuperapp, String email) { // TODO: need to update for user role check
+    public void ObjectBindingChild(ObjectId parentId, ObjectId childId, String userSuperapp, String email) {
         //TODO: prevent child to be a parent of the his parent
         UserRole userRole = this.userCrud.findById(userSuperapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user by id: "
@@ -153,7 +176,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
     @Override
     @Transactional(readOnly = true)
     public List<ObjectBoundary> getChildren(String superapp, String internalObjectId, String userSuperapp, String email,
-                                            int size, int page) { // TODO: nned to update for user role check
+                                            int size, int page) {
         UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
@@ -165,9 +188,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
                             .findById(this.giveFullId(superapp, internalObjectId))
                             .orElseThrow(() -> new SuperappObjectNotFoundException("could not find parent object by id: " +
                                     this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContains(parentObject).orElseThrow(() ->
-                    new SuperappObjectNotFoundException("could not find parent object id: " + parentObject.getObjectId()));
-            // TODO: change to return empty list instead of exception
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContains(parentObject);
             return rv.stream()
                     .map(this::toBoundary)
                     .toList();
@@ -178,9 +199,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
                             .findByObjectIdAndActive(this.giveFullId(superapp, internalObjectId),true)
                             .orElseThrow(() -> new SuperappObjectNotFoundException("could not find parent object by id: " +
                                     this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContainsAndActive(parentObject,true).orElseThrow(() ->
-                    new SuperappObjectNotFoundException("could not find parent object id: " + parentObject.getObjectId()));
-            //TODO: change to return empty list instead of exception
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContainsAndActive(parentObject,true);
             return rv.stream()
                     .map(this::toBoundary)
                     .toList();
@@ -190,7 +209,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
     @Override
     @Transactional(readOnly = true)
     public List<ObjectBoundary> getParents(String superapp, String internalObjectId, String userSuperapp, String email,
-                                           int size, int page) { // TODO: nned to update for user role check
+                                           int size, int page) {
         UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
@@ -202,9 +221,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
                             .findById(this.giveFullId(superapp, internalObjectId))
                             .orElseThrow(() -> new SuperappObjectNotFoundException("could not find child object by id: " +
                                     this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContains(childObject).orElseThrow(() ->
-                    new SuperappObjectNotFoundException("could not find child object id: " + childObject.getObjectId()));
-            //TODO: change to return empty list instead of exception
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContains(childObject);
             return rv.stream()
                     .map(this::toBoundary)
                     .toList();
@@ -215,9 +232,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
                             .findByObjectIdAndActive(this.giveFullId(superapp, internalObjectId),true)
                             .orElseThrow(() -> new SuperappObjectNotFoundException("could not find child object by id: " +
                                     this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContainsAndActive(childObject,true).orElseThrow(() ->
-                    new SuperappObjectNotFoundException("could not find child object id: " + childObject.getObjectId()));
-            //TODO: change to return empty list instead of exception
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContainsAndActive(childObject,true);
 
             return rv.stream()
                     .map(this::toBoundary)
@@ -269,8 +284,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
             existing.setActive(update.getActive());
 
         if (update.getLocation() != null) {
-            existing.setLat(update.getLocation().getLat());
-            existing.setLng(update.getLocation().getLng());
+            existing.setLocation(update.getLocation().getLng(),update.getLocation().getLat());
         }
         if (!update.getObjectDetails().isEmpty())
             existing.setObjectDetails(update.getObjectDetails());
@@ -287,14 +301,11 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
                         + superapp+"/"+email)).getRole();
         List<SuperappObjectsEntity> list;
         if (userRole == UserRole.SUPERAPP_USER)
-            list = this.objectCrud.findAllByType(type).orElseThrow(() //TODO discard the Optional return and leave the list
-                    -> new SuperappObjectNotFoundException("could not find any objects by this type:"+type));
+            list = this.objectCrud.findAllByType(type, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
         else if (userRole == UserRole.MINIAPP_USER)
-            list = this.objectCrud.findAllByTypeAndActive(type, true).orElseThrow(()
-                    -> new SuperappObjectNotFoundException("could not find any objects by this type:"+type));
+            list = this.objectCrud.findAllByTypeAndActive(type, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"), true);
         else
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
-        //TODO: pagination
         return list
                 .stream()
                 .map(this::toBoundary)
@@ -309,43 +320,43 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
                         + superapp+"/"+email)).getRole();
         List<SuperappObjectsEntity> list;
         if (userRole == UserRole.SUPERAPP_USER)
-            list = this.objectCrud.findAllByAlias(alias).orElseThrow(()
-                    -> new SuperappObjectNotFoundException("could not find any objects by this alias:"+alias));
+            list = this.objectCrud.findAllByAlias(alias, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
         else if (userRole == UserRole.MINIAPP_USER)
-            list = this.objectCrud.findAllByAliasAndActive(alias,true).orElseThrow(()
-                    -> new SuperappObjectNotFoundException("could not find any objects by this alias:"+alias));
+            list = this.objectCrud.findAllByAliasAndActive(alias, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"),true);
         else
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
 
-        //TODO: pagination
         return list
                 .stream()
                 .map(this::toBoundary)
                 .toList();
     }
 
-//    @Override
-//    @Transactional(readOnly = true)
-//    public List<ObjectBoundary> getObjectsByLocation(double lat, double lng, double distance, String superapp,
-//                                                     String email, String distanceUnits, int size, int page) {
-//        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
-//                () -> new UserNotFoundException("could not find user to login by id: "
-//                        + superapp+"/"+email)).getRole();
-//        List<SuperappObjectsEntity> list;
-//        if (userRole == UserRole.SUPERAPP_USER)
-//            list = this.objectCrud.findAllByLocation(lat,lng).orElseThrow(()
-//                    -> new SuperappObjectNotFoundException("could not find any objects in the distance: "+distance+" from: "+lat+", "+lng));
-//        else if (userRole == UserRole.MINIAPP_USER)
-//            list = this.objectCrud.findAllByLocationAndActive(lat,lng,true).orElseThrow(()
-//                    -> new SuperappObjectNotFoundException("could not find any objects in the distance: "+distance+" from: "+lat+", "+lng));
-//        else
-//            throw new SuperappObjectUnauthorizedException("User role is forbidden");
-//        //TODO: pagination
-//        return list
-//                .stream()
-//                .map(this::toBoundary)
-//                .toList();
-//    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<ObjectBoundary> getObjectsByLocation(double lat, double lng, double distance, String superapp,
+                                                     String email, String distanceUnits, int size, int page) {
+        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+                () -> new UserNotFoundException("could not find user to login by id: "
+                        + superapp+"/"+email)).getRole();
+        Metrics metricsType = this.toEnumFromString(distanceUnits);
+        if (metricsType == null)
+            throw new SuperappObjectBadRequestException("Wrong input for Metrics distance");
+        Distance maxDistance = new Distance(distance,metricsType);;
+        List<SuperappObjectsEntity> list;
+        if (userRole == UserRole.SUPERAPP_USER)
+            list = this.objectCrud.findAllByLocationNear(new Point(lng,lat),maxDistance,
+                    PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
+        else if (userRole == UserRole.MINIAPP_USER)
+            list = this.objectCrud.findAllByLocationNearAndActive(new Point(lng,lat),maxDistance,
+                    PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"),true);
+        else
+            throw new SuperappObjectUnauthorizedException("User role is forbidden");
+        return list
+                .stream()
+                .map(this::toBoundary)
+                .toList();
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -355,10 +366,10 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
                         + superapp+"/"+email)).getRole();
         List<SuperappObjectsEntity> list;
         if (userRole == UserRole.SUPERAPP_USER)
-            list = this.objectCrud.findAll(); //todo: MAYBE update the return function
+            list = this.objectCrud.findAll(PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId")).toList();
         else if(userRole == UserRole.MINIAPP_USER)
-            list = this.objectCrud.findAllByActive(true).orElseThrow(()
-                    -> new SuperappObjectNotFoundException("Couldn't find existing objects"));
+            list = this.objectCrud.findAllByActive(true,
+                    PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
         else
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
 
@@ -375,7 +386,7 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
         UserRole userRole = this.userCrud.findById(userSuperapp + "/" + email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + userSuperapp + "/" + email)).getRole();
-        if (userRole == UserRole.SUPERAPP_USER) // TODO: update checking role
+        if (userRole == UserRole.SUPERAPP_USER)
             return  this.objectCrud.findById(objectSuperApp + "/" + internalObjectId).map(this::toBoundary).orElseThrow(
                     () -> new SuperappObjectNotFoundException("Could not find object by id: " + objectSuperApp + "/" + internalObjectId));
         else if (userRole == UserRole.MINIAPP_USER)
@@ -395,4 +406,14 @@ public class ObjectsServiceDB implements ObjectServiceWithBindingFunctionality {
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
         this.objectCrud.deleteAll();
     }
+
+    private Metrics toEnumFromString (String value) {
+        if (value != null) {
+            for (Metrics role : Metrics.values())
+                if (value.equals(role.name()))
+                    return Metrics.valueOf(value);
+        }
+        return null;
+    }
+
 }

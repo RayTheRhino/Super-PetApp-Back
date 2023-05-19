@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
@@ -170,7 +172,6 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	@Override
 	@Transactional
 	public Object invokeCommand(MiniAppCommandBoundary command, boolean async) {
-		// TODO: check ASYNC
 		this.checkInputForNewCommand(command);
 		UserRole userRole = this.userCrud.findById(command.getInvokedBy().getUserId().getSuperapp()+"/"+command.getInvokedBy().getUserId().getEmail())
 				.orElseThrow(() -> new UserNotFoundException("No such user exists with this id")).getRole();
@@ -217,9 +218,7 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 		if (userRole != UserRole.ADMIN)
 			throw new SuperappObjectUnauthorizedException("User role is forbidden");
 
-		//TODO: pagination
-		List<MiniappCommandEntity> list = this.miniappCommandCrud.findAll();
-		return list
+		return this.miniappCommandCrud.findAll(PageRequest.of(page, size, Direction.DESC, "invocationTimestamp","commandId"))
 				.stream()
 				.map(this::toBoundary)
 				.toList();
@@ -235,11 +234,8 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 		if (userRole != UserRole.ADMIN)
 			throw new SuperappObjectUnauthorizedException("User role is forbidden");
 
-		//TODO: pagination
-		List<MiniappCommandEntity> list = this.miniappCommandCrud.findAll();
-		return list
+		return this.miniappCommandCrud.findAllByCommandIdContains(miniappName, PageRequest.of(page, size, Direction.DESC, "invocationTimestamp","commandId"))
 				.stream()
-				.filter(t->t.getCommandMiniApp().equals(miniappName))
 				.map(this::toBoundary)
 				.toList();
 	}
