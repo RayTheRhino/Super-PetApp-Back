@@ -364,7 +364,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
         Metrics metricsType = this.toEnumFromString(distanceUnits);
         if (metricsType == null)
             throw new SuperappObjectBadRequestException("Wrong input for Metrics distance");
-        Distance maxDistance = new Distance(distance,metricsType);;
+        Distance maxDistance = new Distance(distance,metricsType);
         List<SuperappObjectsEntity> list;
         if (userRole == UserRole.SUPERAPP_USER)
             list = this.objectCrud.findAllByLocationNear(new Point(lng,lat),maxDistance,
