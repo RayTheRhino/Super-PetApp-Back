@@ -25,7 +25,7 @@ import superapp.dataAccess.UserCrud;
 @Service
 public class ObjectsServiceDB implements ImprovedObjectService {
     private ObjectCrud objectCrud;
-    private UserCrud userCrud;
+    private UserServiceDB userServiceDB;
     private String superapp;
 
     ////SETUP////
@@ -34,14 +34,14 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Autowired
     public void setObjectCrud(ObjectCrud objectCrud) {this.objectCrud = objectCrud;}
     @Autowired
-    public void setUserCrud(UserCrud userCrud) {this.userCrud = userCrud;}
+    public void setUserServiceDB(UserServiceDB userServiceDB) {this.userServiceDB = userServiceDB;}
     ////=====////
 
     @Override
     @Transactional
     public ObjectBoundary CreateObject(ObjectBoundary object) {
         checkInputForNewObject(object);
-        UserRole userRole = this.userCrud.findById(object.getCreatedBy().getUserId().getSuperapp()+"/"+
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(object.getCreatedBy().getUserId().getSuperapp()+"/"+
                 object.getCreatedBy().getUserId().getEmail()).orElseThrow(() -> new UserNotFoundException("could not find user by id")).getRole();
 
         if (userRole != UserRole.SUPERAPP_USER)
@@ -170,12 +170,13 @@ public class ObjectsServiceDB implements ImprovedObjectService {
         }
         return null;
     }
+    public ObjectCrud getObjectCrud(){ return objectCrud;}
     ////=====////
     //// CHILDREN AND PARENTS BINDING AND GETTERS ////
     @Override
     @Transactional
     public void ObjectBindingChild(ObjectId parentId, ObjectId childId, String userSuperapp, String email) {
-        UserRole userRole = this.userCrud.findById(userSuperapp+"/"+email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(userSuperapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user by id: "
                         + userSuperapp+"/"+email)).getRole();
         if (userRole != UserRole.SUPERAPP_USER)
@@ -210,7 +211,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
                                             int size, int page) {
         if (size<=0 || page <0)
             throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
         if (userRole == UserRole.ADMIN)
@@ -245,7 +246,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
                                            int size, int page) {
         if (size<=0 || page <0)
             throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
         if (userRole == UserRole.ADMIN)
@@ -280,7 +281,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Transactional
     public ObjectBoundary updateObject(String objectSuperApp, String internalObjectId, ObjectBoundary update,
                                        String userSuperapp, String email ) {
-        UserRole userRole = this.userCrud.findById(objectSuperApp+"/"+email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(objectSuperApp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + userSuperapp+"/"+email)).getRole();
         if (userRole != UserRole.SUPERAPP_USER)
@@ -314,7 +315,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     public List<ObjectBoundary> getObjectsByType(String type, String superapp, String email, int size, int page) {
         if (size<=0 || page <0)
             throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
         List<SuperappObjectsEntity> list;
@@ -335,7 +336,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     public List<ObjectBoundary> getObjectsByAlias(String alias, String superapp, String email, int size, int page) {
         if (size<=0 || page <0)
             throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
         List<SuperappObjectsEntity> list;
@@ -358,7 +359,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
                                                      String email, String distanceUnits, int size, int page) {
         if (size<=0 || page <0)
             throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
         Metrics metricsType = this.toEnumFromString(distanceUnits);
@@ -385,7 +386,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     public List<ObjectBoundary> getAllObjects(String superapp, String email, int size, int page) {
         if (size<=0 || page <0)
             throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
         List<SuperappObjectsEntity> list;
@@ -407,7 +408,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Transactional(readOnly = true)
     public ObjectBoundary getSpecificObject(String objectSuperApp, String internalObjectId,
                                             String userSuperapp, String email) {
-        UserRole userRole = this.userCrud.findById(userSuperapp + "/" + email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(userSuperapp + "/" + email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + userSuperapp + "/" + email)).getRole();
         if (userRole == UserRole.SUPERAPP_USER)
@@ -423,7 +424,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Override
     @Transactional
     public void deleteAllObjects(String superapp, String email) {
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp +"/"+email)).getRole();
         if (userRole != UserRole.ADMIN)

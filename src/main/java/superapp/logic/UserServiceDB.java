@@ -104,7 +104,6 @@ public class UserServiceDB implements ImprovedUsersService {
 		entity.setRole(toEntityAsEnum(boundary.getRole()));
 
 		return entity;
-
 	}
 
 	private String giveAllId(String superapp, String email){return superapp+"/"+email;}
@@ -120,7 +119,7 @@ public class UserServiceDB implements ImprovedUsersService {
 		if(user.getRole()!=null && this.toEntityAsEnum(user.getRole()) == null)
 			throw new UserBadRequestException("Incorrect user role");
 	}
-
+	public UserCrud getUserCrud(){ return this.userCrud;}
 
 	@Override
 	@Transactional(readOnly = true)
