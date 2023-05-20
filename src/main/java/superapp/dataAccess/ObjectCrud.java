@@ -14,10 +14,10 @@ import java.util.Optional;
 
 public interface ObjectCrud extends ListCrudRepository<SuperappObjectsEntity, String>,
         PagingAndSortingRepository<SuperappObjectsEntity, String> {
-    public List<SuperappObjectsEntity> findAllByChildrenContains(SuperappObjectsEntity theChild);
-    public List<SuperappObjectsEntity> findAllByChildrenContainsAndActive(SuperappObjectsEntity theChild, @Param("childActive") boolean childActive);
-    public List<SuperappObjectsEntity> findAllByParentsContains(SuperappObjectsEntity parentObject);
-    public List<SuperappObjectsEntity> findAllByParentsContainsAndActive(SuperappObjectsEntity parentObject, @Param("parentActive") boolean active);
+    public List<SuperappObjectsEntity> findAllByChildrenContains(SuperappObjectsEntity theChild, Pageable pageable);
+    public List<SuperappObjectsEntity> findAllByChildrenContainsAndActive(SuperappObjectsEntity theChild, Pageable pageable, @Param("childActive") boolean childActive);
+    public List<SuperappObjectsEntity> findAllByParentsContains(SuperappObjectsEntity parentObject, Pageable pageable);
+    public List<SuperappObjectsEntity> findAllByParentsContainsAndActive(SuperappObjectsEntity parentObject, Pageable pageable, @Param("parentActive") boolean active);
     public List<SuperappObjectsEntity> findAllByType(@Param("type") String type, Pageable pageable);
     public List<SuperappObjectsEntity> findAllByTypeAndActive(@Param("type") String type, Pageable pageable, @Param("active") boolean active);
     public List<SuperappObjectsEntity> findAllByAlias(@Param("alias") String alias, Pageable pageable);

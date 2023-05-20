@@ -28,13 +28,14 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     private UserCrud userCrud;
     private String superapp;
 
+    ////SETUP////
     @Value("${spring.application.name}")
     public void setSuperapp(String superapp){this.superapp = superapp;}
     @Autowired
     public void setObjectCrud(ObjectCrud objectCrud) {this.objectCrud = objectCrud;}
     @Autowired
     public void setUserCrud(UserCrud userCrud) {this.userCrud = userCrud;}
-
+    ////=====////
 
     @Override
     @Transactional
@@ -52,7 +53,8 @@ public class ObjectsServiceDB implements ImprovedObjectService {
         object = toBoundary(entity);
         return object;
     }
-
+    ////=====////
+    ////OLD FUNCTIONS////
     @Override
     @Transactional
     @Deprecated
@@ -68,8 +70,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Override
     @Transactional(readOnly = true)
     @Deprecated
-    public List<ObjectBoundary> getAllObjects() {
-        throw new SuperappObjectGoneException("Unavailable method");  }
+    public List<ObjectBoundary> getAllObjects() { throw new SuperappObjectGoneException("Unavailable method");  }
 
     @Override
     @Transactional()
@@ -94,7 +95,8 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     public List<ObjectBoundary> getParents(String superapp, String internalObjectId) {
         throw new SuperappObjectGoneException("Unavailable method");
     }
-
+    ////=====////
+    ////TO BOUNDARY, ENTITY AND UTILS////
     private ObjectBoundary toBoundary(SuperappObjectsEntity entity) {
         ObjectBoundary boundary = new ObjectBoundary();
 
@@ -141,105 +143,6 @@ public class ObjectsServiceDB implements ImprovedObjectService {
         return entity;
 
     }
-
-    @Override
-    @Transactional
-    public void ObjectBindingChild(ObjectId parentId, ObjectId childId, String userSuperapp, String email) {
-        //TODO: prevent child to be a parent of the his parent
-        UserRole userRole = this.userCrud.findById(userSuperapp+"/"+email).orElseThrow(
-                () -> new UserNotFoundException("could not find user by id: "
-                        + userSuperapp+"/"+email)).getRole();
-        if (userRole != UserRole.SUPERAPP_USER)
-            throw new SuperappObjectUnauthorizedException("User Role is not allowed");
-
-        if (parentId.giveAllId().equals(childId.giveAllId()))
-            throw new SuperappObjectBadRequestException("Can't bind object to itself");
-        SuperappObjectsEntity parentObject =
-                this.objectCrud
-                        .findById(parentId.giveAllId())
-                        .orElseThrow(()->new SuperappObjectNotFoundException("could not find parent object by id: " +
-                                parentId.giveAllId()));
-
-        SuperappObjectsEntity childObject =
-                this.objectCrud
-                        .findById(childId.giveAllId())
-                        .orElseThrow(()->new SuperappObjectNotFoundException("could not find child object by id: " +
-                                childId.giveAllId()));
-        if(parentObject.getChildren().contains(childObject))
-            throw new SuperappObjectBadRequestException("Object child already exists in children list");
-        parentObject.addChild(childObject);
-        childObject.addParent(parentObject);
-        this.objectCrud.save(childObject);
-        this.objectCrud.save(parentObject);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ObjectBoundary> getChildren(String superapp, String internalObjectId, String userSuperapp, String email,
-                                            int size, int page) {
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
-                () -> new UserNotFoundException("could not find user to login by id: "
-                        + superapp+"/"+email)).getRole();
-        if (userRole == UserRole.ADMIN)
-            throw new SuperappObjectUnauthorizedException("User Role is not allowed");
-        else if (userRole == UserRole.SUPERAPP_USER) {
-            SuperappObjectsEntity parentObject =
-                    this.objectCrud
-                            .findById(this.giveFullId(superapp, internalObjectId))
-                            .orElseThrow(() -> new SuperappObjectNotFoundException("could not find parent object by id: " +
-                                    this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContains(parentObject);
-            return rv.stream()
-                    .map(this::toBoundary)
-                    .toList();
-        }
-        else { // MINIAPP_USER
-            SuperappObjectsEntity parentObject =
-                    this.objectCrud
-                            .findByObjectIdAndActive(this.giveFullId(superapp, internalObjectId),true)
-                            .orElseThrow(() -> new SuperappObjectNotFoundException("could not find parent object by id: " +
-                                    this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContainsAndActive(parentObject,true);
-            return rv.stream()
-                    .map(this::toBoundary)
-                    .toList();
-        }
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ObjectBoundary> getParents(String superapp, String internalObjectId, String userSuperapp, String email,
-                                           int size, int page) {
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
-                () -> new UserNotFoundException("could not find user to login by id: "
-                        + superapp+"/"+email)).getRole();
-        if (userRole == UserRole.ADMIN)
-            throw new SuperappObjectUnauthorizedException("User Role is not allowed");
-        else if (userRole == UserRole.SUPERAPP_USER) {
-            SuperappObjectsEntity childObject =
-                    this.objectCrud
-                            .findById(this.giveFullId(superapp, internalObjectId))
-                            .orElseThrow(() -> new SuperappObjectNotFoundException("could not find child object by id: " +
-                                    this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContains(childObject);
-            return rv.stream()
-                    .map(this::toBoundary)
-                    .toList();
-        }
-        else{//MINIAPP_USER
-            SuperappObjectsEntity childObject =
-                    this.objectCrud
-                            .findByObjectIdAndActive(this.giveFullId(superapp, internalObjectId),true)
-                            .orElseThrow(() -> new SuperappObjectNotFoundException("could not find child object by id: " +
-                                    this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContainsAndActive(childObject,true);
-
-            return rv.stream()
-                    .map(this::toBoundary)
-                    .toList();
-        }
-    }
-
     private String giveFullId(String superapp, String intrenalId){
         return superapp+"/"+intrenalId;
     }
@@ -259,6 +162,119 @@ public class ObjectsServiceDB implements ImprovedObjectService {
             throw new SuperappObjectBadRequestException("Need to input the user details correctly");
 
     }
+    private Metrics toEnumFromString (String value) {
+        if (value != null) {
+            for (Metrics role : Metrics.values())
+                if (value.equals(role.name()))
+                    return Metrics.valueOf(value);
+        }
+        return null;
+    }
+    ////=====////
+    //// CHILDREN AND PARENTS BINDING AND GETTERS ////
+    @Override
+    @Transactional
+    public void ObjectBindingChild(ObjectId parentId, ObjectId childId, String userSuperapp, String email) {
+        UserRole userRole = this.userCrud.findById(userSuperapp+"/"+email).orElseThrow(
+                () -> new UserNotFoundException("could not find user by id: "
+                        + userSuperapp+"/"+email)).getRole();
+        if (userRole != UserRole.SUPERAPP_USER)
+            throw new SuperappObjectUnauthorizedException("User Role is not allowed");
+
+        if (parentId.giveAllId().equals(childId.giveAllId()))
+            throw new SuperappObjectBadRequestException("Can't bind object to itself");
+        SuperappObjectsEntity parentObject =
+                this.objectCrud
+                        .findById(parentId.giveAllId())
+                        .orElseThrow(()->new SuperappObjectNotFoundException("could not find parent object by id: " +
+                                parentId.giveAllId()));
+
+        SuperappObjectsEntity childObject =
+                this.objectCrud
+                        .findById(childId.giveAllId())
+                        .orElseThrow(()->new SuperappObjectNotFoundException("could not find child object by id: " +
+                                childId.giveAllId()));
+        if (parentObject.getChildren().contains(childObject))
+            throw new SuperappObjectBadRequestException("Object child already exists in children list");
+        if (parentObject.getParents().contains(childObject))
+            throw new SuperappObjectBadRequestException("New Child object is already parent object's parent");
+        parentObject.addChild(childObject);
+        childObject.addParent(parentObject);
+        this.objectCrud.save(childObject);
+        this.objectCrud.save(parentObject);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ObjectBoundary> getChildren(String superapp, String internalObjectId, String userSuperapp, String email,
+                                            int size, int page) {
+        if (size<=0 || page <0)
+            throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
+        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+                () -> new UserNotFoundException("could not find user to login by id: "
+                        + superapp+"/"+email)).getRole();
+        if (userRole == UserRole.ADMIN)
+            throw new SuperappObjectUnauthorizedException("User Role is not allowed");
+        else if (userRole == UserRole.SUPERAPP_USER) {
+            SuperappObjectsEntity parentObject =
+                    this.objectCrud
+                            .findById(this.giveFullId(superapp, internalObjectId))
+                            .orElseThrow(() -> new SuperappObjectNotFoundException("could not find parent object by id: " +
+                                    this.giveFullId(superapp, internalObjectId)));
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContains(parentObject, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
+            return rv.stream()
+                    .map(this::toBoundary)
+                    .toList();
+        }
+        else { // MINIAPP_USER
+            SuperappObjectsEntity parentObject =
+                    this.objectCrud
+                            .findByObjectIdAndActive(this.giveFullId(superapp, internalObjectId),true)
+                            .orElseThrow(() -> new SuperappObjectNotFoundException("could not find parent object by id: " +
+                                    this.giveFullId(superapp, internalObjectId)));
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContainsAndActive(parentObject, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"),true);
+            return rv.stream()
+                    .map(this::toBoundary)
+                    .toList();
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ObjectBoundary> getParents(String superapp, String internalObjectId, String userSuperapp, String email,
+                                           int size, int page) {
+        if (size<=0 || page <0)
+            throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
+        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+                () -> new UserNotFoundException("could not find user to login by id: "
+                        + superapp+"/"+email)).getRole();
+        if (userRole == UserRole.ADMIN)
+            throw new SuperappObjectUnauthorizedException("User Role is not allowed");
+        else if (userRole == UserRole.SUPERAPP_USER) {
+            SuperappObjectsEntity childObject =
+                    this.objectCrud
+                            .findById(this.giveFullId(superapp, internalObjectId))
+                            .orElseThrow(() -> new SuperappObjectNotFoundException("could not find child object by id: " +
+                                    this.giveFullId(superapp, internalObjectId)));
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContains(childObject, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
+            return rv.stream()
+                    .map(this::toBoundary)
+                    .toList();
+        }
+        else{//MINIAPP_USER
+            SuperappObjectsEntity childObject =
+                    this.objectCrud
+                            .findByObjectIdAndActive(this.giveFullId(superapp, internalObjectId),true)
+                            .orElseThrow(() -> new SuperappObjectNotFoundException("could not find child object by id: " +
+                                    this.giveFullId(superapp, internalObjectId)));
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContainsAndActive(childObject, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"),true);
+
+            return rv.stream()
+                    .map(this::toBoundary)
+                    .toList();
+        }
+    }
+
 
     @Override
     @Transactional
@@ -296,6 +312,8 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Override
     @Transactional(readOnly = true)
     public List<ObjectBoundary> getObjectsByType(String type, String superapp, String email, int size, int page) {
+        if (size<=0 || page <0)
+            throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
         UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
@@ -315,6 +333,8 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Override
     @Transactional(readOnly = true)
     public List<ObjectBoundary> getObjectsByAlias(String alias, String superapp, String email, int size, int page) {
+        if (size<=0 || page <0)
+            throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
         UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
@@ -336,6 +356,8 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Transactional(readOnly = true)
     public List<ObjectBoundary> getObjectsByLocation(double lat, double lng, double distance, String superapp,
                                                      String email, String distanceUnits, int size, int page) {
+        if (size<=0 || page <0)
+            throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
         UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
@@ -361,6 +383,8 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Override
     @Transactional(readOnly = true)
     public List<ObjectBoundary> getAllObjects(String superapp, String email, int size, int page) {
+        if (size<=0 || page <0)
+            throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
         UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
@@ -406,14 +430,4 @@ public class ObjectsServiceDB implements ImprovedObjectService {
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
         this.objectCrud.deleteAll();
     }
-
-    private Metrics toEnumFromString (String value) {
-        if (value != null) {
-            for (Metrics role : Metrics.values())
-                if (value.equals(role.name()))
-                    return Metrics.valueOf(value);
-        }
-        return null;
-    }
-
 }

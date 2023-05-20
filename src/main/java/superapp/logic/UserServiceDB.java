@@ -125,6 +125,8 @@ public class UserServiceDB implements ImprovedUsersService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<UserBoundary> getAllUsers(String superapp, String email, int size, int page) {
+		if (size<=0 || page <0)
+			throw new UserBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
 
 		UserRole userRole = this.userCrud.findById(giveAllId(superapp,email)).orElseThrow(
 				() -> new UserNotFoundException("could not find user to login by id: "

@@ -199,6 +199,7 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	@JmsListener(destination = "petcq")
 	public void listenToCommand(String json){
 		try {
+			// For now, command process is only to save it
 			MiniAppCommandBoundary theCommand = this.jackson
 					.readValue(json, MiniAppCommandBoundary.class);
 			MiniappCommandEntity entity = this.toEntity(theCommand);
@@ -212,6 +213,8 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<MiniAppCommandBoundary> getAllCommands(String superapp, String email, int size, int page) {
+		if (size<=0 || page <0)
+			throw new MiniappCommandBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
 		UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
 				() -> new UserNotFoundException("could not find user to login by id: "
 						+ superapp +"/"+email)).getRole();
@@ -227,6 +230,8 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<MiniAppCommandBoundary> getAllMiniAppCommands(String miniappName, String superapp, String email, int size, int page) {
+		if (size<=0 || page <0)
+			throw new MiniappCommandBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
 
 		UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
 				() -> new UserNotFoundException("could not find user to login by id: "
