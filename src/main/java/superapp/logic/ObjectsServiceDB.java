@@ -48,6 +48,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
             throw new SuperappObjectUnauthorizedException("User Role is not allowed");
         object.setObjectId(new ObjectId(this.superapp,UUID.randomUUID().toString()));
         object.setCreationTimestamp(new Date());
+
         SuperappObjectsEntity entity = this.toEntity(object);
         objectCrud.save(entity);
         object = toBoundary(entity);
@@ -160,6 +161,10 @@ public class ObjectsServiceDB implements ImprovedObjectService {
                 || boundary.getCreatedBy().getUserId().getSuperapp() == null
                 || boundary.getCreatedBy().getUserId().getSuperapp().isBlank())
             throw new SuperappObjectBadRequestException("Need to input the user details correctly");
+        if (boundary.getLocation() != null
+                && boundary.getLocation().getLat() != null
+                && boundary.getLocation().getLng() != null)
+            checkLatAndLng(boundary.getLocation().getLat(),boundary.getLocation().getLng());
 
     }
     private Metrics toEnumFromString (String value) {
@@ -281,7 +286,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Transactional
     public ObjectBoundary updateObject(String objectSuperApp, String internalObjectId, ObjectBoundary update,
                                        String userSuperapp, String email ) {
-        UserRole userRole = this.userServiceDB.getUserCrud().findById(objectSuperApp+"/"+email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(userSuperapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + userSuperapp+"/"+email)).getRole();
         if (userRole != UserRole.SUPERAPP_USER)
@@ -301,6 +306,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
             existing.setActive(update.getActive());
 
         if (update.getLocation() != null) {
+            checkLatAndLng(update.getLocation().getLat(),update.getLocation().getLng());
             existing.setLocation(update.getLocation().getLng(),update.getLocation().getLat());
         }
         if (!update.getObjectDetails().isEmpty())
@@ -430,5 +436,11 @@ public class ObjectsServiceDB implements ImprovedObjectService {
         if (userRole != UserRole.ADMIN)
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
         this.objectCrud.deleteAll();
+    }
+    private void checkLatAndLng(double lat, double lng){
+        if (lat > 90.0 || lat < -90.0)
+            throw new SuperappObjectBadRequestException("Latitude should be in range of 90 to -90");
+        if (lng > 180.0 || lng < -180.0)
+            throw new SuperappObjectBadRequestException("Longitude should be in range of 180 to -180");
     }
 }
