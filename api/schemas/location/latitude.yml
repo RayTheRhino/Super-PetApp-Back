@@ -1,8 +1,0 @@
-type: number
-description: latitude
-minimum: -90
-maximum: 90
-example: 34.7818
-format: float
-xml:
-  name: Latitude

@@ -2,8 +2,8 @@ package superapp.logic;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -20,16 +20,13 @@ import superapp.bounderies.*;
 import superapp.data.MiniappCommandEntity;
 import superapp.data.UserRole;
 import superapp.dataAccess.MiniappCommandCrud;
-import superapp.dataAccess.ObjectCrud;
-import superapp.dataAccess.UserCrud;
 
 @Service
 public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	private MiniappCommandCrud miniappCommandCrud;
-	private UserCrud userCrud;
-	private ObjectsService objectsService;
+	private UserServiceDB userServiceDB;
+	private ObjectsServiceDB objectsServiceDB;
 
-	private ObjectCrud objectCrud;
 	private ObjectMapper jackson;
 	private JmsTemplate jmsTemplate;
 	private String superapp;
@@ -47,14 +44,11 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	public void setMiniappCommandCrud(MiniappCommandCrud miniappCommandCrud) {this.miniappCommandCrud = miniappCommandCrud;}
 
 	@Autowired
-	public void setObjectCrud(ObjectCrud objectCrud) {this.objectCrud = objectCrud;}
+	public void setUserServiceDB(UserServiceDB userServiceDB) {this.userServiceDB = userServiceDB;}
 
 	@Autowired
-	public void setUserCrud(UserCrud userCrud) {this.userCrud = userCrud;}
-
-	@Autowired
-	public void setObjectCrud(ObjectsService objectsServiceDB) {
-		this.objectsService = objectsServiceDB;
+	public void setObjectsServiceDB(ObjectsServiceDB objectsServiceDB) {
+		this.objectsServiceDB = objectsServiceDB;
 	}
 
 	@PostConstruct
@@ -67,21 +61,24 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	public Object invokeCommand(MiniAppCommandBoundary command) { throw new MiniappCommandUnauthorizedException("Unavailable method");}
 
 	private Object ConfigureCommand(MiniAppCommandBoundary command) {
-		if(command.getCommand().equals("GetAllParkReviews")) {
-			List<ObjectBoundary> list = this.objectsService.getAllObjects();
-			List<ObjectBoundary> parkReviews = list.stream().filter(x -> x.getType().equals("park-review")).collect(Collectors.toList());
-			return parkReviews;
+		int size = 10, page = 0;
+		for (Map.Entry<String,Object> entry: command.getCommandAttributes().entrySet()) {
+			if (entry.getKey().matches("page") && entry.getValue() instanceof Integer)
+				page = (int) entry.getValue();
+			if (entry.getKey().matches("size") && entry.getValue() instanceof Integer)
+				size = (int) entry.getValue();
 		}
-		if(command.getCommand().equals("GetAllShopReviews")){
-			List<ObjectBoundary> list = this.objectsService.getAllObjects();
-			List<ObjectBoundary> shopReviews = list.stream().filter(x -> x.getType().equals("shop-review")).collect(Collectors.toList());
-			return shopReviews;
-		}
-		if(command.getCommand().equals("GetAllMessages")){
-			List<ObjectBoundary> list = this.objectsService.getAllObjects();
-			List<ObjectBoundary> messages = list.stream().filter(x -> x.getType().equals("message")).collect(Collectors.toList());
-			return messages;
-		}
+		String typeObject = switch (command.getCommand()) {
+			case "GetAllParkReviews" -> "park-review";
+			case "GetAllShopReviews" -> "shop-review";
+			case "GetAllMessages" -> "messages";
+			default -> "none";
+		};
+		if (!typeObject.equals("none"))
+			return this.objectsServiceDB.getObjectsByType(typeObject,
+					command.getInvokedBy().getUserId().getSuperapp(),
+					command.getInvokedBy().getUserId().getEmail(),size,page);
+
 		return command;
 	}
 
@@ -161,7 +158,7 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 				|| boundary.getInvokedBy().getUserId().getSuperapp() == null
 				|| boundary.getInvokedBy().getUserId().getSuperapp().isBlank())
 			throw new MiniappCommandBadRequestException("New command needs invoked identification, with user id including email and superapp name");
-		this.objectCrud.findByObjectIdAndActive(boundary.getTargetObject().getObjectId().giveAllId(),true).orElseThrow(()
+		this.objectsServiceDB.getObjectCrud().findByObjectIdAndActiveIsTrue(boundary.getTargetObject().getObjectId().giveAllId()).orElseThrow(()
 				-> new SuperappObjectNotFoundException("No such object exists with this id"));
 	}
 
@@ -173,7 +170,7 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	@Transactional
 	public Object invokeCommand(MiniAppCommandBoundary command, boolean async) {
 		this.checkInputForNewCommand(command);
-		UserRole userRole = this.userCrud.findById(command.getInvokedBy().getUserId().getSuperapp()+"/"+command.getInvokedBy().getUserId().getEmail())
+		UserRole userRole = this.userServiceDB.getUserCrud().findById(command.getInvokedBy().getUserId().getSuperapp()+"/"+command.getInvokedBy().getUserId().getEmail())
 				.orElseThrow(() -> new UserNotFoundException("No such user exists with this id")).getRole();
 		if (userRole != UserRole.MINIAPP_USER)
 			throw new MiniappCommandUnauthorizedException("User Role not allowed for method");
@@ -188,17 +185,18 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 			}catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-		}
-		else {
+		} else {
 			MiniappCommandEntity entity = this.toEntity(command);
 			miniappCommandCrud.save(entity);
 		}
-		return ConfigureCommand(command);
+//		return ConfigureCommand(command); // check how to process the command , in the meantime, return the command boundary
+		return command;
 	}
 
 	@JmsListener(destination = "petcq")
 	public void listenToCommand(String json){
 		try {
+			// For now, command process is only to save it
 			MiniAppCommandBoundary theCommand = this.jackson
 					.readValue(json, MiniAppCommandBoundary.class);
 			MiniappCommandEntity entity = this.toEntity(theCommand);
@@ -212,7 +210,9 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<MiniAppCommandBoundary> getAllCommands(String superapp, String email, int size, int page) {
-		UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+		if (size<=0 || page <0)
+			throw new MiniappCommandBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
+		UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
 				() -> new UserNotFoundException("could not find user to login by id: "
 						+ superapp +"/"+email)).getRole();
 		if (userRole != UserRole.ADMIN)
@@ -227,8 +227,10 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<MiniAppCommandBoundary> getAllMiniAppCommands(String miniappName, String superapp, String email, int size, int page) {
+		if (size<=0 || page <0)
+			throw new MiniappCommandBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
 
-		UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+		UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
 				() -> new UserNotFoundException("could not find user to login by id: "
 						+ superapp +"/"+email)).getRole();
 		if (userRole != UserRole.ADMIN)
@@ -243,7 +245,7 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	@Override
 	@Transactional
 	public void deleteAll(String superapp, String email) {
-		UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+		UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
 				() -> new UserNotFoundException("could not find user to login by id: "
 						+ superapp +"/"+email)).getRole();
 		if (userRole != UserRole.ADMIN)

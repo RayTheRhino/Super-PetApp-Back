@@ -1,6 +1,0 @@
-type: array
-description: object features
-items:
-  type: string
-xml:
-  name: Features

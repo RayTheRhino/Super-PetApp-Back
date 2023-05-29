@@ -20,39 +20,41 @@ import superapp.bounderies.UserIdBoundary;
 import superapp.data.SuperappObjectsEntity;
 import superapp.data.UserRole;
 import superapp.dataAccess.ObjectCrud;
-import superapp.dataAccess.UserCrud;
 
 @Service
 public class ObjectsServiceDB implements ImprovedObjectService {
     private ObjectCrud objectCrud;
-    private UserCrud userCrud;
+    private UserServiceDB userServiceDB;
     private String superapp;
 
+    ////SETUP////
     @Value("${spring.application.name}")
     public void setSuperapp(String superapp){this.superapp = superapp;}
     @Autowired
     public void setObjectCrud(ObjectCrud objectCrud) {this.objectCrud = objectCrud;}
     @Autowired
-    public void setUserCrud(UserCrud userCrud) {this.userCrud = userCrud;}
-
+    public void setUserServiceDB(UserServiceDB userServiceDB) {this.userServiceDB = userServiceDB;}
+    ////=====////
 
     @Override
     @Transactional
     public ObjectBoundary CreateObject(ObjectBoundary object) {
         checkInputForNewObject(object);
-        UserRole userRole = this.userCrud.findById(object.getCreatedBy().getUserId().getSuperapp()+"/"+
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(object.getCreatedBy().getUserId().getSuperapp()+"/"+
                 object.getCreatedBy().getUserId().getEmail()).orElseThrow(() -> new UserNotFoundException("could not find user by id")).getRole();
 
         if (userRole != UserRole.SUPERAPP_USER)
             throw new SuperappObjectUnauthorizedException("User Role is not allowed");
         object.setObjectId(new ObjectId(this.superapp,UUID.randomUUID().toString()));
         object.setCreationTimestamp(new Date());
+
         SuperappObjectsEntity entity = this.toEntity(object);
         objectCrud.save(entity);
         object = toBoundary(entity);
         return object;
     }
-
+    ////=====////
+    ////OLD FUNCTIONS////
     @Override
     @Transactional
     @Deprecated
@@ -68,8 +70,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Override
     @Transactional(readOnly = true)
     @Deprecated
-    public List<ObjectBoundary> getAllObjects() {
-        throw new SuperappObjectGoneException("Unavailable method");  }
+    public List<ObjectBoundary> getAllObjects() { throw new SuperappObjectGoneException("Unavailable method");  }
 
     @Override
     @Transactional()
@@ -94,7 +95,8 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     public List<ObjectBoundary> getParents(String superapp, String internalObjectId) {
         throw new SuperappObjectGoneException("Unavailable method");
     }
-
+    ////=====////
+    ////TO BOUNDARY, ENTITY AND UTILS////
     private ObjectBoundary toBoundary(SuperappObjectsEntity entity) {
         ObjectBoundary boundary = new ObjectBoundary();
 
@@ -141,12 +143,44 @@ public class ObjectsServiceDB implements ImprovedObjectService {
         return entity;
 
     }
+    private String giveFullId(String superapp, String intrenalId){
+        return superapp+"/"+intrenalId;
+    }
+    private void checkInputForNewObject(ObjectBoundary boundary){
 
+        if ( boundary.getAlias() == null || boundary.getAlias().isBlank())
+            throw new SuperappObjectBadRequestException("Need to input the alias of object");
+        if (boundary.getType() == null || boundary.getType().isBlank())
+            throw new SuperappObjectBadRequestException("Need to input the type of object");
+        if (boundary.getCreatedBy() == null
+                || boundary.getCreatedBy().getUserId() == null
+                || boundary.getCreatedBy().getUserId().getEmail() == null
+                || boundary.getCreatedBy().getUserId().getEmail().isBlank()
+                || !boundary.getCreatedBy().getUserId().getEmail().matches("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$")
+                || boundary.getCreatedBy().getUserId().getSuperapp() == null
+                || boundary.getCreatedBy().getUserId().getSuperapp().isBlank())
+            throw new SuperappObjectBadRequestException("Need to input the user details correctly");
+        if (boundary.getLocation() != null
+                && boundary.getLocation().getLat() != null
+                && boundary.getLocation().getLng() != null)
+            checkLatAndLng(boundary.getLocation().getLat(),boundary.getLocation().getLng());
+
+    }
+    private Metrics toEnumFromString (String value) {
+        if (value != null) {
+            for (Metrics role : Metrics.values())
+                if (value.equals(role.name()))
+                    return Metrics.valueOf(value);
+        }
+        return null;
+    }
+    public ObjectCrud getObjectCrud(){ return objectCrud;}
+    ////=====////
+    //// CHILDREN AND PARENTS BINDING AND GETTERS ////
     @Override
     @Transactional
     public void ObjectBindingChild(ObjectId parentId, ObjectId childId, String userSuperapp, String email) {
-        //TODO: prevent child to be a parent of the his parent
-        UserRole userRole = this.userCrud.findById(userSuperapp+"/"+email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(userSuperapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user by id: "
                         + userSuperapp+"/"+email)).getRole();
         if (userRole != UserRole.SUPERAPP_USER)
@@ -165,8 +199,10 @@ public class ObjectsServiceDB implements ImprovedObjectService {
                         .findById(childId.giveAllId())
                         .orElseThrow(()->new SuperappObjectNotFoundException("could not find child object by id: " +
                                 childId.giveAllId()));
-        if(parentObject.getChildren().contains(childObject))
+        if (parentObject.getChildren().contains(childObject))
             throw new SuperappObjectBadRequestException("Object child already exists in children list");
+        if (parentObject.getParents().contains(childObject))
+            throw new SuperappObjectBadRequestException("New Child object is already parent object's parent");
         parentObject.addChild(childObject);
         childObject.addParent(parentObject);
         this.objectCrud.save(childObject);
@@ -177,7 +213,9 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Transactional(readOnly = true)
     public List<ObjectBoundary> getChildren(String superapp, String internalObjectId, String userSuperapp, String email,
                                             int size, int page) {
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        if (size<=0 || page <0)
+            throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
         if (userRole == UserRole.ADMIN)
@@ -188,7 +226,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
                             .findById(this.giveFullId(superapp, internalObjectId))
                             .orElseThrow(() -> new SuperappObjectNotFoundException("could not find parent object by id: " +
                                     this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContains(parentObject);
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContains(parentObject, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
             return rv.stream()
                     .map(this::toBoundary)
                     .toList();
@@ -196,10 +234,11 @@ public class ObjectsServiceDB implements ImprovedObjectService {
         else { // MINIAPP_USER
             SuperappObjectsEntity parentObject =
                     this.objectCrud
-                            .findByObjectIdAndActive(this.giveFullId(superapp, internalObjectId),true)
+                            .findByObjectIdAndActiveIsTrue(this.giveFullId(superapp, internalObjectId))
                             .orElseThrow(() -> new SuperappObjectNotFoundException("could not find parent object by id: " +
                                     this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContainsAndActive(parentObject,true);
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContainsAndActiveIsTrue(parentObject,
+                    PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
             return rv.stream()
                     .map(this::toBoundary)
                     .toList();
@@ -210,7 +249,9 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Transactional(readOnly = true)
     public List<ObjectBoundary> getParents(String superapp, String internalObjectId, String userSuperapp, String email,
                                            int size, int page) {
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        if (size<=0 || page <0)
+            throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
         if (userRole == UserRole.ADMIN)
@@ -221,7 +262,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
                             .findById(this.giveFullId(superapp, internalObjectId))
                             .orElseThrow(() -> new SuperappObjectNotFoundException("could not find child object by id: " +
                                     this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContains(childObject);
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContains(childObject, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
             return rv.stream()
                     .map(this::toBoundary)
                     .toList();
@@ -229,10 +270,11 @@ public class ObjectsServiceDB implements ImprovedObjectService {
         else{//MINIAPP_USER
             SuperappObjectsEntity childObject =
                     this.objectCrud
-                            .findByObjectIdAndActive(this.giveFullId(superapp, internalObjectId),true)
+                            .findByObjectIdAndActiveIsTrue(this.giveFullId(superapp, internalObjectId))
                             .orElseThrow(() -> new SuperappObjectNotFoundException("could not find child object by id: " +
                                     this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContainsAndActive(childObject,true);
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContainsAndActiveIsTrue(childObject,
+                    PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
 
             return rv.stream()
                     .map(this::toBoundary)
@@ -240,31 +282,12 @@ public class ObjectsServiceDB implements ImprovedObjectService {
         }
     }
 
-    private String giveFullId(String superapp, String intrenalId){
-        return superapp+"/"+intrenalId;
-    }
-    private void checkInputForNewObject(ObjectBoundary boundary){
-
-        if ( boundary.getAlias() == null || boundary.getAlias().isBlank())
-            throw new SuperappObjectBadRequestException("Need to input the alias of object");
-        if (boundary.getType() == null || boundary.getType().isBlank())
-            throw new SuperappObjectBadRequestException("Need to input the type of object");
-        if (boundary.getCreatedBy() == null
-                || boundary.getCreatedBy().getUserId() == null
-                || boundary.getCreatedBy().getUserId().getEmail() == null
-                || boundary.getCreatedBy().getUserId().getEmail().isBlank()
-                || !boundary.getCreatedBy().getUserId().getEmail().matches("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$")
-                || boundary.getCreatedBy().getUserId().getSuperapp() == null
-                || boundary.getCreatedBy().getUserId().getSuperapp().isBlank())
-            throw new SuperappObjectBadRequestException("Need to input the user details correctly");
-
-    }
 
     @Override
     @Transactional
     public ObjectBoundary updateObject(String objectSuperApp, String internalObjectId, ObjectBoundary update,
                                        String userSuperapp, String email ) {
-        UserRole userRole = this.userCrud.findById(objectSuperApp+"/"+email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(userSuperapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + userSuperapp+"/"+email)).getRole();
         if (userRole != UserRole.SUPERAPP_USER)
@@ -284,6 +307,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
             existing.setActive(update.getActive());
 
         if (update.getLocation() != null) {
+            checkLatAndLng(update.getLocation().getLat(),update.getLocation().getLng());
             existing.setLocation(update.getLocation().getLng(),update.getLocation().getLat());
         }
         if (!update.getObjectDetails().isEmpty())
@@ -296,14 +320,16 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Override
     @Transactional(readOnly = true)
     public List<ObjectBoundary> getObjectsByType(String type, String superapp, String email, int size, int page) {
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        if (size<=0 || page <0)
+            throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
         List<SuperappObjectsEntity> list;
         if (userRole == UserRole.SUPERAPP_USER)
             list = this.objectCrud.findAllByType(type, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
         else if (userRole == UserRole.MINIAPP_USER)
-            list = this.objectCrud.findAllByTypeAndActive(type, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"), true);
+            list = this.objectCrud.findAllByTypeAndActiveIsTrue(type, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
         else
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
         return list
@@ -315,14 +341,16 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Override
     @Transactional(readOnly = true)
     public List<ObjectBoundary> getObjectsByAlias(String alias, String superapp, String email, int size, int page) {
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        if (size<=0 || page <0)
+            throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
         List<SuperappObjectsEntity> list;
         if (userRole == UserRole.SUPERAPP_USER)
             list = this.objectCrud.findAllByAlias(alias, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
         else if (userRole == UserRole.MINIAPP_USER)
-            list = this.objectCrud.findAllByAliasAndActive(alias, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"),true);
+            list = this.objectCrud.findAllByAliasAndActiveIsTrue(alias, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
         else
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
 
@@ -336,19 +364,21 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Transactional(readOnly = true)
     public List<ObjectBoundary> getObjectsByLocation(double lat, double lng, double distance, String superapp,
                                                      String email, String distanceUnits, int size, int page) {
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        if (size<=0 || page <0)
+            throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
         Metrics metricsType = this.toEnumFromString(distanceUnits);
         if (metricsType == null)
             throw new SuperappObjectBadRequestException("Wrong input for Metrics distance");
-        Distance maxDistance = new Distance(distance,metricsType);;
+        Distance maxDistance = new Distance(distance,metricsType);
         List<SuperappObjectsEntity> list;
         if (userRole == UserRole.SUPERAPP_USER)
             list = this.objectCrud.findAllByLocationNear(new Point(lng,lat),maxDistance,
                     PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
         else if (userRole == UserRole.MINIAPP_USER)
-            list = this.objectCrud.findAllByLocationNearAndActive(new Point(lng,lat),maxDistance,
+            list = this.objectCrud.findAllByLocationNearAndActiveIsTrue(new Point(lng,lat),maxDistance,
                     PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"),true);
         else
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
@@ -361,7 +391,9 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Override
     @Transactional(readOnly = true)
     public List<ObjectBoundary> getAllObjects(String superapp, String email, int size, int page) {
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        if (size<=0 || page <0)
+            throw new SuperappObjectBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp+"/"+email)).getRole();
         List<SuperappObjectsEntity> list;
@@ -383,14 +415,14 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Transactional(readOnly = true)
     public ObjectBoundary getSpecificObject(String objectSuperApp, String internalObjectId,
                                             String userSuperapp, String email) {
-        UserRole userRole = this.userCrud.findById(userSuperapp + "/" + email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(userSuperapp + "/" + email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + userSuperapp + "/" + email)).getRole();
         if (userRole == UserRole.SUPERAPP_USER)
             return  this.objectCrud.findById(objectSuperApp + "/" + internalObjectId).map(this::toBoundary).orElseThrow(
                     () -> new SuperappObjectNotFoundException("Could not find object by id: " + objectSuperApp + "/" + internalObjectId));
         else if (userRole == UserRole.MINIAPP_USER)
-            return this.objectCrud.findByObjectIdAndActive(objectSuperApp + "/" + internalObjectId,true).map(this::toBoundary).orElseThrow(
+            return this.objectCrud.findByObjectIdAndActiveIsTrue(objectSuperApp + "/" + internalObjectId).map(this::toBoundary).orElseThrow(
                     () -> new SuperappObjectNotFoundException("Could not find object by id: " + objectSuperApp + "/" + internalObjectId));
         else //ADMIN
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
@@ -399,21 +431,17 @@ public class ObjectsServiceDB implements ImprovedObjectService {
     @Override
     @Transactional
     public void deleteAllObjects(String superapp, String email) {
-        UserRole userRole = this.userCrud.findById(superapp+"/"+email).orElseThrow(
+        UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
                 () -> new UserNotFoundException("could not find user to login by id: "
                         + superapp +"/"+email)).getRole();
         if (userRole != UserRole.ADMIN)
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
         this.objectCrud.deleteAll();
     }
-
-    private Metrics toEnumFromString (String value) {
-        if (value != null) {
-            for (Metrics role : Metrics.values())
-                if (value.equals(role.name()))
-                    return Metrics.valueOf(value);
-        }
-        return null;
+    private void checkLatAndLng(double lat, double lng){
+        if (lat > 90.0 || lat < -90.0)
+            throw new SuperappObjectBadRequestException("Latitude should be in range of 90 to -90");
+        if (lng > 180.0 || lng < -180.0)
+            throw new SuperappObjectBadRequestException("Longitude should be in range of 180 to -180");
     }
-
 }

@@ -1,4 +1,0 @@
-Park:
-  $ref: "./park.yml"
-Review:
-  $ref: "./review.yml"

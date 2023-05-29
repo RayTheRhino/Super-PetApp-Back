@@ -104,7 +104,6 @@ public class UserServiceDB implements ImprovedUsersService {
 		entity.setRole(toEntityAsEnum(boundary.getRole()));
 
 		return entity;
-
 	}
 
 	private String giveAllId(String superapp, String email){return superapp+"/"+email;}
@@ -120,11 +119,13 @@ public class UserServiceDB implements ImprovedUsersService {
 		if(user.getRole()!=null && this.toEntityAsEnum(user.getRole()) == null)
 			throw new UserBadRequestException("Incorrect user role");
 	}
-
+	public UserCrud getUserCrud(){ return this.userCrud;}
 
 	@Override
 	@Transactional(readOnly = true)
 	public List<UserBoundary> getAllUsers(String superapp, String email, int size, int page) {
+		if (size<=0 || page <0)
+			throw new UserBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
 
 		UserRole userRole = this.userCrud.findById(giveAllId(superapp,email)).orElseThrow(
 				() -> new UserNotFoundException("could not find user to login by id: "
