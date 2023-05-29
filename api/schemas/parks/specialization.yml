@@ -1,9 +1,0 @@
-type: string
-description: park specialization
-enum:
-  - Dogs
-  - Cats
-  - Bunnies
-  - Reptiles
-xml:
-  name: specialization

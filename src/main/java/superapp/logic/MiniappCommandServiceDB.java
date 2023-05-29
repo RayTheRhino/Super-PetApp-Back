@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -21,8 +20,6 @@ import superapp.bounderies.*;
 import superapp.data.MiniappCommandEntity;
 import superapp.data.UserRole;
 import superapp.dataAccess.MiniappCommandCrud;
-import superapp.dataAccess.ObjectCrud;
-import superapp.dataAccess.UserCrud;
 
 @Service
 public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
@@ -161,7 +158,7 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 				|| boundary.getInvokedBy().getUserId().getSuperapp() == null
 				|| boundary.getInvokedBy().getUserId().getSuperapp().isBlank())
 			throw new MiniappCommandBadRequestException("New command needs invoked identification, with user id including email and superapp name");
-		this.objectsServiceDB.getObjectCrud().findByObjectIdAndActive(boundary.getTargetObject().getObjectId().giveAllId(),true).orElseThrow(()
+		this.objectsServiceDB.getObjectCrud().findByObjectIdAndActiveIsTrue(boundary.getTargetObject().getObjectId().giveAllId()).orElseThrow(()
 				-> new SuperappObjectNotFoundException("No such object exists with this id"));
 	}
 

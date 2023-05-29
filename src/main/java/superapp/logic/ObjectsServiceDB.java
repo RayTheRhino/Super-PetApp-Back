@@ -20,7 +20,6 @@ import superapp.bounderies.UserIdBoundary;
 import superapp.data.SuperappObjectsEntity;
 import superapp.data.UserRole;
 import superapp.dataAccess.ObjectCrud;
-import superapp.dataAccess.UserCrud;
 
 @Service
 public class ObjectsServiceDB implements ImprovedObjectService {
@@ -235,10 +234,11 @@ public class ObjectsServiceDB implements ImprovedObjectService {
         else { // MINIAPP_USER
             SuperappObjectsEntity parentObject =
                     this.objectCrud
-                            .findByObjectIdAndActive(this.giveFullId(superapp, internalObjectId),true)
+                            .findByObjectIdAndActiveIsTrue(this.giveFullId(superapp, internalObjectId))
                             .orElseThrow(() -> new SuperappObjectNotFoundException("could not find parent object by id: " +
                                     this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContainsAndActive(parentObject, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"),true);
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByParentsContainsAndActiveIsTrue(parentObject,
+                    PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
             return rv.stream()
                     .map(this::toBoundary)
                     .toList();
@@ -270,10 +270,11 @@ public class ObjectsServiceDB implements ImprovedObjectService {
         else{//MINIAPP_USER
             SuperappObjectsEntity childObject =
                     this.objectCrud
-                            .findByObjectIdAndActive(this.giveFullId(superapp, internalObjectId),true)
+                            .findByObjectIdAndActiveIsTrue(this.giveFullId(superapp, internalObjectId))
                             .orElseThrow(() -> new SuperappObjectNotFoundException("could not find child object by id: " +
                                     this.giveFullId(superapp, internalObjectId)));
-            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContainsAndActive(childObject, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"),true);
+            List<SuperappObjectsEntity> rv = this.objectCrud.findAllByChildrenContainsAndActiveIsTrue(childObject,
+                    PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
 
             return rv.stream()
                     .map(this::toBoundary)
@@ -328,7 +329,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
         if (userRole == UserRole.SUPERAPP_USER)
             list = this.objectCrud.findAllByType(type, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
         else if (userRole == UserRole.MINIAPP_USER)
-            list = this.objectCrud.findAllByTypeAndActive(type, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"), true);
+            list = this.objectCrud.findAllByTypeAndActiveIsTrue(type, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
         else
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
         return list
@@ -349,7 +350,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
         if (userRole == UserRole.SUPERAPP_USER)
             list = this.objectCrud.findAllByAlias(alias, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
         else if (userRole == UserRole.MINIAPP_USER)
-            list = this.objectCrud.findAllByAliasAndActive(alias, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"),true);
+            list = this.objectCrud.findAllByAliasAndActiveIsTrue(alias, PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
         else
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
 
@@ -377,7 +378,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
             list = this.objectCrud.findAllByLocationNear(new Point(lng,lat),maxDistance,
                     PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"));
         else if (userRole == UserRole.MINIAPP_USER)
-            list = this.objectCrud.findAllByLocationNearAndActive(new Point(lng,lat),maxDistance,
+            list = this.objectCrud.findAllByLocationNearAndActiveIsTrue(new Point(lng,lat),maxDistance,
                     PageRequest.of(page, size, Direction.DESC, "creationTimestamp","objectId"),true);
         else
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
@@ -421,7 +422,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
             return  this.objectCrud.findById(objectSuperApp + "/" + internalObjectId).map(this::toBoundary).orElseThrow(
                     () -> new SuperappObjectNotFoundException("Could not find object by id: " + objectSuperApp + "/" + internalObjectId));
         else if (userRole == UserRole.MINIAPP_USER)
-            return this.objectCrud.findByObjectIdAndActive(objectSuperApp + "/" + internalObjectId,true).map(this::toBoundary).orElseThrow(
+            return this.objectCrud.findByObjectIdAndActiveIsTrue(objectSuperApp + "/" + internalObjectId).map(this::toBoundary).orElseThrow(
                     () -> new SuperappObjectNotFoundException("Could not find object by id: " + objectSuperApp + "/" + internalObjectId));
         else //ADMIN
             throw new SuperappObjectUnauthorizedException("User role is forbidden");
