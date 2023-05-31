@@ -452,7 +452,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
                         PageRequest.of(page, size, Direction.DESC, "creationTimestamp", "objectId"));
             else if (userRole == UserRole.MINIAPP_USER)
                 list = this.objectCrud.findAllByLocationNearAndActiveIsTrue(new Point(lng, lat), maxDistance,
-                        PageRequest.of(page, size, Direction.DESC, "creationTimestamp", "objectId"), true);
+                        PageRequest.of(page, size, Direction.DESC, "creationTimestamp", "objectId"));
             else
                 throw new SuperappObjectUnauthorizedException("User role is forbidden");
             return list
