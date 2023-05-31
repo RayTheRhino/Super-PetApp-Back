@@ -217,8 +217,7 @@ public class UserServiceDB implements ImprovedUsersService {
 				e.printStackTrace();
 			}
 			this.logger.trace(function +" - begins");
-			return System.currentTimeMillis(); // TODO: check how to use
-			// TODO: *** got all functions in UserDB
+			return System.currentTimeMillis();
 		}
 		private void logTime(String function,long start){
 			long elapsed = System.currentTimeMillis() - start;

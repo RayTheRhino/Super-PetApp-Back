@@ -561,8 +561,7 @@ public class ObjectsServiceDB implements ImprovedObjectService {
             e.printStackTrace();
         }
         this.logger.trace(function +" - begins");
-        return System.currentTimeMillis();// TODO: check how to use
-        // TODO: *** got all functions in ObjectDB in starter
+        return System.currentTimeMillis();
     }
     private void logTime(String function,long start){
         long elapsed = System.currentTimeMillis() - start;

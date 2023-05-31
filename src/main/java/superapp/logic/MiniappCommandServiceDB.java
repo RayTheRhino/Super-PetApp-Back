@@ -305,7 +305,6 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 			}
 			this.logger.trace(function +" - begins");
 			return System.currentTimeMillis();
-			// TODO: *** got all functions in MiniappCommandDB for starters and time execution
 		}
 		private void logTime(String function,long start){
 			long elapsed = System.currentTimeMillis() - start;
