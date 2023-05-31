@@ -23,7 +23,7 @@ public interface ObjectCrud extends ListCrudRepository<SuperappObjectsEntity, St
     public List<SuperappObjectsEntity> findAllByAlias(@Param("alias") String alias, Pageable pageable);
     public List<SuperappObjectsEntity> findAllByAliasAndActiveIsTrue(@Param("alias") String alias, Pageable pageable);
     public List<SuperappObjectsEntity> findAllByLocationNear(@Param("location") Point location , @Param("maxDistance") Distance distance, Pageable pageable);
-    public List<SuperappObjectsEntity> findAllByLocationNearAndActiveIsTrue(@Param("location") Point location , @Param("maxDistance") Distance distance, Pageable pageable, @Param("active") boolean active);
+    public List<SuperappObjectsEntity> findAllByLocationNearAndActiveIsTrue(@Param("location") Point location , @Param("maxDistance") Distance distance, Pageable pageable);
     public List<SuperappObjectsEntity> findAllByActiveIsTrue(Pageable pageable);
     public Optional<SuperappObjectsEntity> findByObjectIdAndActiveIsTrue(@Param("objectId") String objectId);
 
