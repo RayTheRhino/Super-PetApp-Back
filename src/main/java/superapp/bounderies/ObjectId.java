@@ -34,9 +34,7 @@ public class ObjectId {
     }
     @Override
     public String toString() {
-        return "ObjectId{" +
-                "superapp='" + superapp + '\'' +
-                ", internalObjectId='" + internalObjectId + '\'' +
-                '}';
+        return "superapp='" + (superapp != null ? superapp : "null") + '\'' +
+                ", internalObjectId='" + (internalObjectId != null ? internalObjectId : "null")  + '\'';
     }
 }

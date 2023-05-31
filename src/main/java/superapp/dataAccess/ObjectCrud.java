@@ -14,17 +14,17 @@ import java.util.Optional;
 
 public interface ObjectCrud extends ListCrudRepository<SuperappObjectsEntity, String>,
         PagingAndSortingRepository<SuperappObjectsEntity, String> {
-    public List<SuperappObjectsEntity> findAllByChildrenContains(SuperappObjectsEntity theChild, Pageable pageable);
-    public List<SuperappObjectsEntity> findAllByChildrenContainsAndActiveIsTrue(SuperappObjectsEntity theChild, Pageable pageable);
-    public List<SuperappObjectsEntity> findAllByParentsContains(SuperappObjectsEntity parentObject, Pageable pageable);
-    public List<SuperappObjectsEntity> findAllByParentsContainsAndActiveIsTrue(SuperappObjectsEntity parentObject, Pageable pageable);
+    public List<SuperappObjectsEntity> findAllByChildrenContains(@Param("theChild") SuperappObjectsEntity theChild, Pageable pageable);
+    public List<SuperappObjectsEntity> findAllByChildrenContainsAndActiveIsTrue(@Param("theChild") SuperappObjectsEntity theChild, Pageable pageable);
+    public List<SuperappObjectsEntity> findAllByParentsContains(@Param("parentObject") SuperappObjectsEntity parentObject, Pageable pageable);
+    public List<SuperappObjectsEntity> findAllByParentsContainsAndActiveIsTrue(@Param("parentObject") SuperappObjectsEntity parentObject, Pageable pageable);
     public List<SuperappObjectsEntity> findAllByType(@Param("type") String type, Pageable pageable);
     public List<SuperappObjectsEntity> findAllByTypeAndActiveIsTrue(@Param("type") String type, Pageable pageable);
     public List<SuperappObjectsEntity> findAllByAlias(@Param("alias") String alias, Pageable pageable);
     public List<SuperappObjectsEntity> findAllByAliasAndActiveIsTrue(@Param("alias") String alias, Pageable pageable);
     public List<SuperappObjectsEntity> findAllByLocationNear(@Param("location") Point location , @Param("maxDistance") Distance distance, Pageable pageable);
     public List<SuperappObjectsEntity> findAllByLocationNearAndActiveIsTrue(@Param("location") Point location , @Param("maxDistance") Distance distance, Pageable pageable, @Param("active") boolean active);
-    public List<SuperappObjectsEntity> findAllByActive(@Param("active") boolean active, Pageable pageable);
+    public List<SuperappObjectsEntity> findAllByActiveIsTrue(Pageable pageable);
     public Optional<SuperappObjectsEntity> findByObjectIdAndActiveIsTrue(@Param("objectId") String objectId);
 
 

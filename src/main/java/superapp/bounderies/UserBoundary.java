@@ -57,11 +57,10 @@ public class UserBoundary {
     @Override
     public String toString() {
         return "UserBoundary{" +
-                "userId= {Superapp= '" + userId.getSuperapp() + '\''+
-                ", Email= '"+ userId.getEmail()+"'}" +
-                ",\nrole='" + role + '\'' +
-                ",\nuserName='" + username + '\'' +
-                ",\navatar='" + avatar + '\'' +
+                "userId= {"+(userId != null ? userId.toString() : "null" )+ "}'"+
+                ", role='" + (role != null ? role : "null") + '\'' +
+                ", userName='" + (username != null ? username : "null") + '\'' +
+                ", avatar='" + (avatar != null ? avatar : "null") + '\'' +
                 '}';
     }
 }

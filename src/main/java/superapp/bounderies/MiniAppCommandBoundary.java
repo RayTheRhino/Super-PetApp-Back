@@ -68,14 +68,12 @@ public class MiniAppCommandBoundary {
     @Override
     public String toString() {
         return "MiniAppCommandBoundary{" +
-                "commandId= {Superapp= '" + commandId.getSuperapp() + '\''+
-                ", Miniapp= '" +commandId.getMiniapp() + '\''+
-                ", InternalId= '"+commandId.getInternalCommandId()+"'}"+
-                ",\ncommand='" + command + '\'' +
-                ",\ntargetObject=" + targetObject +
-                ",\ninvocationTimeStamp=" + invocationTimestamp +
-                ",\ncommandAttribute=" + commandAttributes +
-                ",\ninvokedBy=" + invokedBy +
-                '}';
+                "commandId= {"+(commandId != null ? commandId.toString() : "null")+'}'+
+                ", command='" + (command != null ? command : "null") + '\'' +
+                ", invocationTimestamp=" + (invocationTimestamp != null ? invocationTimestamp.toString() : "null") +
+                ", targetObject={" + (targetObject != null ? targetObject.toString() : "null") + '}' +
+                ", invokedBy={" + (invokedBy != null ? invokedBy.toString() : "null") + '}' +
+                ", commandAttributes=" + (commandAttributes != null ? commandAttributes.toString() : "null") +
+                "}";
     }
 }
