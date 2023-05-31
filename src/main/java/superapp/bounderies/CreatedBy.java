@@ -20,7 +20,7 @@ public class CreatedBy {
 
     @Override
     public String toString() {
-        return "{userId= " + userId +
-                '}';
+        return "{userId= {" + (userId != null ? userId.toString() : "null") +
+                "}}";
     }
 }

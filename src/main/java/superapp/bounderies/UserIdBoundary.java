@@ -33,8 +33,7 @@ public class UserIdBoundary{
 
     @Override
     public String toString() {
-        return "{superapp= '" + superapp + '\'' +
-                ", email= '" + email + '\'' +
-                '}';
+        return "superapp= '" + (superapp != null ? superapp : "null") + '\'' +
+                ", email= '" + (email != null ? email : "null") + '\'';
     }
 }

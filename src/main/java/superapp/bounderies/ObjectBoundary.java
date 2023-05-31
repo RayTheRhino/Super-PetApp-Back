@@ -98,15 +98,14 @@ public class ObjectBoundary {
     @Override
     public String toString() {
         return "ObjectBoundary{" +
-                "objectId= {Superapp= '"+ objectId.getSuperapp()+'\''+
-                "IntenalId= '"+objectId.getInternalObjectId()+"'}"+
-                ",\ntype='" + type + '\'' +
-                ",\nalias='" + alias + '\'' +
-                ",\nactive=" + active +
-                ",\ncreationTimestamp=" + creationTimestamp +
-                ",\nlocation=" + location +
-                ",\ncreatedBy=" + createdBy +
-                ",\nobjectDetails=" + objectDetails +
+                "objectId= {"+(objectId != null ? objectId.toString(): "null")+ "}"+
+                ",type='" + (type != null ? type: "null") + '\'' +
+                ",alias='" + (alias != null ? alias: "null") + '\'' +
+                ",active=" + (active != null ? active: "null") +
+                ",creationTimestamp=" + (objectId != null ? objectId.toString(): "null") +
+                ",location=" + (location != null ? location.toString(): "null") +
+                ",createdBy=" + (createdBy != null ? createdBy.toString(): "null") +
+                ",objectDetails=" + (objectDetails != null ? objectDetails.toString(): "null") +
                 '}';
     }
 }

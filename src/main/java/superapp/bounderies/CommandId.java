@@ -41,4 +41,11 @@ public class CommandId {
     public void setInternalCommandId(String internalCommandId) {
         this.internalCommandId = internalCommandId;
     }
+
+    @Override
+    public String toString() {
+        return  "superapp='" + (superapp!=null ? superapp : "null") + '\'' +
+                ", miniapp='" + (miniapp!=null ? miniapp : "null") + '\'' +
+                ", internalCommandId='" + (internalCommandId!=null ? internalCommandId : "null") + '\'';
+    }
 }
