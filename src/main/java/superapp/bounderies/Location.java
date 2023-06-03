@@ -28,6 +28,6 @@ public class Location {
     }
 
     public String toString(){
-        return "{Lat= "+this.lat+", Lng= "+this.lng+"}";
+        return "{Lat= "+(lat != null ? lat : "null")+", Lng= "+(lng != null ? lng : "null")+"}";
     }
 }

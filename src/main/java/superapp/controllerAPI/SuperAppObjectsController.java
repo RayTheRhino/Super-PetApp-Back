@@ -96,7 +96,7 @@ public class SuperAppObjectsController {
             @RequestParam (name = "size", required = false, defaultValue = "10") int size,
             @RequestParam (name = "page", required = false, defaultValue = "0") int page){
 
-        List<ObjectBoundary> rv = objectsService.getObjectsByLocation(lat,lng,Math.abs(distance),superapp,email,distanceUnits,size,page);// TODO: create the new get functions
+        List<ObjectBoundary> rv = objectsService.getObjectsByLocation(lat,lng,Math.abs(distance),superapp,email,distanceUnits,size,page);
         return rv.toArray(new ObjectBoundary[0]);
     }
 

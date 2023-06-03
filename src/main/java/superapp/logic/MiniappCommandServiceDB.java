@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +32,7 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	private ObjectMapper jackson;
 	private JmsTemplate jmsTemplate;
 	private String superapp;
+	private Log logger = LogFactory.getLog(MiniappCommandServiceDB.class);
 
 	@Value("${spring.application.name}")
 	public void setSuperapp(String superapp){this.superapp = superapp;}
@@ -172,28 +175,37 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	@Override
 	@Transactional
 	public Object invokeCommand(MiniAppCommandBoundary command, boolean async) {
-		this.checkInputForNewCommand(command);
-		UserRole userRole = this.userServiceDB.getUserCrud().findById(command.getInvokedBy().getUserId().getSuperapp()+"/"+command.getInvokedBy().getUserId().getEmail())
-				.orElseThrow(() -> new UserNotFoundException("No such user exists with this id")).getRole();
-		if (userRole != UserRole.MINIAPP_USER)
-			throw new MiniappCommandUnauthorizedException("User Role not allowed for method");
-		command.setCommandId(new CommandId(this.superapp,command.getCommandId().getMiniapp(),UUID.randomUUID().toString()));
-		command.setInvocationTimestamp(new Date());
+		long start = 0;
+		if (this.logger.isTraceEnabled())
+			start = this.useLogger("invokeCommand", command.toString(), String.valueOf(async));
+		try {
+			this.checkInputForNewCommand(command);
+			UserRole userRole = this.userServiceDB.getUserCrud().findById(command.getInvokedBy().getUserId().getSuperapp() + "/" + command.getInvokedBy().getUserId().getEmail())
+					.orElseThrow(() -> new UserNotFoundException("No such user exists with this id")).getRole();
+			if (userRole != UserRole.MINIAPP_USER)
+				throw new MiniappCommandUnauthorizedException("User Role not allowed for method");
+			command.setCommandId(new CommandId(this.superapp, command.getCommandId().getMiniapp(), UUID.randomUUID().toString()));
+			command.setInvocationTimestamp(new Date());
 
-		if (async){
-			try {
-				String json = this.jackson.writeValueAsString(command);
-				this.jmsTemplate
-						.convertAndSend("petcq", json);
-			}catch (Exception e) {
-				throw new RuntimeException(e);
+			if (async) {
+				try {
+					String json = this.jackson.writeValueAsString(command);
+					this.jmsTemplate
+							.convertAndSend("petcq", json);
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			} else {
+				MiniappCommandEntity entity = this.toEntity(command);
+				miniappCommandCrud.save(entity);
 			}
-		} else {
-			MiniappCommandEntity entity = this.toEntity(command);
-			miniappCommandCrud.save(entity);
+			return ConfigureCommand(command); // check how to process the command , in the meantime, return the command boundary
+
+		}finally {
+			if (this.logger.isTraceEnabled()) {
+				this.logTime("invokeCommand", start);
+			}
 		}
-		return ConfigureCommand(command); // check how to process the command , in the meantime, return the command boundary
-//		return command;
 	}
 
 	@JmsListener(destination = "petcq")
@@ -213,46 +225,92 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<MiniAppCommandBoundary> getAllCommands(String superapp, String email, int size, int page) {
-		if (size<=0 || page <0)
-			throw new MiniappCommandBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
-		UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
-				() -> new UserNotFoundException("could not find user to login by id: "
-						+ superapp +"/"+email)).getRole();
-		if (userRole != UserRole.ADMIN)
-			throw new SuperappObjectUnauthorizedException("User role is forbidden");
+		long start = 0;
+		if (this.logger.isTraceEnabled())
+			start = this.useLogger("getAllCommands", superapp, email, String.valueOf(size), String.valueOf(page));
+		try {
+			if (size <= 0 || page < 0)
+				throw new MiniappCommandBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
+			UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp + "/" + email).orElseThrow(
+					() -> new UserNotFoundException("could not find user to login by id: "
+							+ superapp + "/" + email)).getRole();
+			if (userRole != UserRole.ADMIN)
+				throw new SuperappObjectUnauthorizedException("User role is forbidden");
 
-		return this.miniappCommandCrud.findAll(PageRequest.of(page, size, Direction.DESC, "invocationTimestamp","commandId"))
-				.stream()
-				.map(this::toBoundary)
-				.toList();
+			return this.miniappCommandCrud.findAll(PageRequest.of(page, size, Direction.DESC, "invocationTimestamp", "commandId"))
+					.stream()
+					.map(this::toBoundary)
+					.toList();
+		}finally {
+			if (this.logger.isTraceEnabled()) {
+				this.logTime("getAllCommands", start);
+			}
+		}
 	}
 
 	@Override
 	@Transactional(readOnly = true)
 	public List<MiniAppCommandBoundary> getAllMiniAppCommands(String miniappName, String superapp, String email, int size, int page) {
-		if (size<=0 || page <0)
-			throw new MiniappCommandBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
+		long start = 0;
+		if (this.logger.isTraceEnabled())
+			start = this.useLogger("getAllMiniAppCommands", miniappName, superapp, email, String.valueOf(size), String.valueOf(page));
+		try {
+			if (size <= 0 || page < 0)
+				throw new MiniappCommandBadRequestException("Page and size are incorrect, size need to be more then 0 and page 0 or above");
 
-		UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
-				() -> new UserNotFoundException("could not find user to login by id: "
-						+ superapp +"/"+email)).getRole();
-		if (userRole != UserRole.ADMIN)
-			throw new SuperappObjectUnauthorizedException("User role is forbidden");
+			UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp + "/" + email).orElseThrow(
+					() -> new UserNotFoundException("could not find user to login by id: "
+							+ superapp + "/" + email)).getRole();
+			if (userRole != UserRole.ADMIN)
+				throw new SuperappObjectUnauthorizedException("User role is forbidden");
 
-		return this.miniappCommandCrud.findAllByCommandIdContains(miniappName, PageRequest.of(page, size, Direction.DESC, "invocationTimestamp","commandId"))
-				.stream()
-				.map(this::toBoundary)
-				.toList();
+			return this.miniappCommandCrud.findAllByCommandIdContains(miniappName, PageRequest.of(page, size, Direction.DESC, "invocationTimestamp", "commandId"))
+					.stream()
+					.map(this::toBoundary)
+					.toList();
+		}finally {
+			if (this.logger.isTraceEnabled()) {
+				this.logTime("getAllMiniAppCommands", start);
+			}
+		}
 	}
 
 	@Override
 	@Transactional
 	public void deleteAll(String superapp, String email) {
-		UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp+"/"+email).orElseThrow(
-				() -> new UserNotFoundException("could not find user to login by id: "
-						+ superapp +"/"+email)).getRole();
-		if (userRole != UserRole.ADMIN)
-			throw new SuperappObjectUnauthorizedException("User role is forbidden");
-		this.miniappCommandCrud.deleteAll();
+		long start = 0;
+		if (this.logger.isTraceEnabled())
+			start = this.useLogger("deleteAll", superapp, email);
+		try {
+			UserRole userRole = this.userServiceDB.getUserCrud().findById(superapp + "/" + email).orElseThrow(
+					() -> new UserNotFoundException("could not find user to login by id: "
+							+ superapp + "/" + email)).getRole();
+			if (userRole != UserRole.ADMIN)
+				throw new SuperappObjectUnauthorizedException("User role is forbidden");
+			this.miniappCommandCrud.deleteAll();
+		}finally {
+			if (this.logger.isTraceEnabled()) {
+				this.logTime("deleteAll", start);
+			}
+		}
 	}
+		private long useLogger(String function, String... args) {
+			StringBuilder buffer = new StringBuilder();
+			for ( String arg : args)
+				buffer.append(arg).append(" ");
+			try {
+				String json = this.jackson.writeValueAsString(buffer);
+				String invocationDetails = UserServiceDB.class.getName() + "."+function+"(" + json + ")";
+				this.logger.trace(invocationDetails);
+			} catch (Exception e) {
+				this.logger.error(e.getMessage());
+				e.printStackTrace();
+			}
+			this.logger.trace(function +" - begins");
+			return System.currentTimeMillis();
+		}
+		private void logTime(String function,long start){
+			long elapsed = System.currentTimeMillis() - start;
+			this.logger.debug(function+" - ended after " + elapsed + "ms / "+elapsed/1000.0+"sec");
+		}
 }
