@@ -71,7 +71,7 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 		String typeObject = switch (command.getCommand()) {
 			case "GetAllParkReviews" -> "park-review";
 			case "GetAllShopReviews" -> "shop-review";
-			case "GetAllMessages" -> "messages";
+			case "GetAllMessages" -> "message";
 			default -> "none";
 		};
 		if (!typeObject.equals("none"))
@@ -158,8 +158,11 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 				|| boundary.getInvokedBy().getUserId().getSuperapp() == null
 				|| boundary.getInvokedBy().getUserId().getSuperapp().isBlank())
 			throw new MiniappCommandBadRequestException("New command needs invoked identification, with user id including email and superapp name");
-		this.objectsServiceDB.getObjectCrud().findByObjectIdAndActiveIsTrue(boundary.getTargetObject().getObjectId().giveAllId()).orElseThrow(()
-				-> new SuperappObjectNotFoundException("No such object exists with this id"));
+		if(!boundary.getCommand().equals("GetAllShopReviews")  && !boundary.getCommand().equals("GetAllParkReviews") && !boundary.getCommand().equals("GetAllMessages")){
+			this.objectsServiceDB.getObjectCrud().findByObjectIdAndActiveIsTrue(boundary.getTargetObject().getObjectId().giveAllId()).orElseThrow(()
+					-> new SuperappObjectNotFoundException("No such object exists with this id"));
+		}
+
 	}
 
 	private String giveAllId(String superapp, String miniapp, String internalId){
@@ -189,8 +192,8 @@ public class MiniappCommandServiceDB implements ImprovedMiniappCommandService {
 			MiniappCommandEntity entity = this.toEntity(command);
 			miniappCommandCrud.save(entity);
 		}
-//		return ConfigureCommand(command); // check how to process the command , in the meantime, return the command boundary
-		return command;
+		return ConfigureCommand(command); // check how to process the command , in the meantime, return the command boundary
+//		return command;
 	}
 
 	@JmsListener(destination = "petcq")
